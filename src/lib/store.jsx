@@ -1,5 +1,8 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { APP, PLANS, FREE_PROFILES } from '../config.js'
+import { APP, PLANS, FREE_PROFILES, PAYMENTS } from '../config.js'
+
+// While the app is free, everyone gets full access and no paywall is shown anywhere.
+export const FREE_LAUNCH = PAYMENTS.mode === 'free'
 
 const blank = () => ({ v: 1, lang: null, profiles: [], activeId: null, premium: null, settings: { voice: true, sound: true, bigText: false } })
 
@@ -44,9 +47,10 @@ export function weekStart(str = dayStr()) {
 export const activeProfile = (s) => s.profiles.find((p) => p.id === s.activeId) || s.profiles[0] || null
 
 export function isPlus(s) {
-  return !!(s.premium && s.premium.until >= dayStr())
+  return FREE_LAUNCH || !!(s.premium && s.premium.until >= dayStr())
 }
 export function maxProfiles(s) {
+  if (FREE_LAUNCH) return Math.max(...PLANS.map((p) => p.profiles))
   if (!isPlus(s)) return FREE_PROFILES
   return PLANS.find((p) => p.id === s.premium.plan)?.profiles || 3
 }

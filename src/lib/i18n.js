@@ -229,6 +229,7 @@ const S = {
   // profile
   family: ['Family profiles', 'परिवार की प्रोफ़ाइल'],
   addMember: ['Add family member', 'परिवार का सदस्य जोड़ें'],
+  memberMax: ['You can have up to {n} profiles on one phone.', 'एक फ़ोन पर ज़्यादा से ज़्यादा {n} प्रोफ़ाइल बन सकती हैं।'],
   memberLimit: ['Your plan allows {n} profiles. Upgrade to add more.', 'आपके प्लान में {n} प्रोफ़ाइल हैं। और जोड़ने के लिए अपग्रेड करें।'],
   active: ['Active', 'सक्रिय'],
   remove: ['Remove', 'हटाएँ'],

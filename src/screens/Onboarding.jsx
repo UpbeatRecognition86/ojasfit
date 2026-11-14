@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ArrowLeft, Check } from 'lucide-react'
-import { useStore, newProfile, dayStr } from '../lib/store.jsx'
+import { useStore, newProfile, dayStr, FREE_LAUNCH } from '../lib/store.jsx'
 import { useT, LANGS } from '../lib/i18n.js'
 import { JOURNEYS, JMAP, recommend } from '../data/journeys.js'
 import { APP } from '../config.js'
@@ -21,7 +21,7 @@ export function JourneyOption({ j, on, onClick, badge }) {
         <span className="row wrap" style={{ gap: 6, marginTop: 6 }}>
           {badge && <span className="chip ok">{badge}</span>}
           <span className="chip plain">{t('weeksN', { n: j.weeks })}</span>
-          <span className={`chip ${j.premium ? 'gold' : 'ok'}`}>{j.premium ? t('week1Free') : t('free')}</span>
+          {!FREE_LAUNCH && <span className={`chip ${j.premium ? 'gold' : 'ok'}`}>{j.premium ? t('week1Free') : t('free')}</span>}
         </span>
       </span>
     </button>

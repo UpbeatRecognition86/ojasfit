@@ -9,6 +9,8 @@ export const PLANS = [
 
 export const FREE_PROFILES = 2
 
-// 'demo' unlocks Plus on this device without charging anything.
-// Switch to 'razorpay' only after a backend creates and verifies orders (see README).
-export const PAYMENTS = { mode: 'demo', razorpayKey: '' }
+// Payment mode:
+//   'free'  — launch mode: everything is unlocked and no paywall, prices or Plus labels are shown.
+//   'demo'  — shows the Plus paywall, but "Subscribe" unlocks Plus on this device without charging.
+//   Real payments ('play' / 'razorpay') need a backend that verifies purchases first (see SHIP.md).
+export const PAYMENTS = { mode: 'free', razorpayKey: '' }
