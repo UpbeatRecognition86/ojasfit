@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { ArrowLeft, Check, Crown, Plus, Trash2, Share2, Download, Upload, Pencil } from 'lucide-react'
-import { useStore, activeProfile, stats, isPlus, maxProfiles, dayStr, addDays, weekStart, badges, rank } from '../lib/store.jsx'
+import { useStore, activeProfile, stats, isPlus, maxProfiles, dayStr, addDays, weekStart, badges, rank, FREE_LAUNCH } from '../lib/store.jsx'
 import { useT, LANGS } from '../lib/i18n.js'
 import { JMAP, QMAP, PMAP } from '../data/journeys.js'
 import { APP, PLANS, PAYMENTS } from '../config.js'
@@ -243,15 +243,17 @@ export function Profile({ nav }) {
         {state.profiles.length < limit ? (
           <button className="btn soft" style={{ marginTop: 10 }} onClick={() => nav.go('addProfile')}><Plus size={18} /> {t('addMember')}</button>
         ) : (
-          <button className="note" style={{ marginTop: 10, width: '100%' }} onClick={() => nav.go('paywall')}>{t('memberLimit', { n: limit })}</button>
+          FREE_LAUNCH
+            ? <p className="note" style={{ marginTop: 10 }}>{t('memberMax', { n: limit })}</p>
+            : <button className="note" style={{ marginTop: 10, width: '100%' }} onClick={() => nav.go('paywall')}>{t('memberLimit', { n: limit })}</button>
         )}
       </div>
 
-      <button className="card tap" style={{ display: "flex", alignItems: "center", gap: 10 }} onClick={() => nav.go("paywall")}>
+      {!FREE_LAUNCH && <button className="card tap" style={{ display: "flex", alignItems: "center", gap: 10 }} onClick={() => nav.go("paywall")}>
         <Crown size={24} color="var(--gold)" />
         <span className="grow"><b>{t('membership')}</b><span className="muted small" style={{ display: 'block' }}>{plus ? t('plusUntil', { d: state.premium.until }) : t('freePlan')}</span></span>
         <span className="chip gold">{plus ? t('manage') : t('upgrade')}</span>
-      </button>
+      </button>}
 
       <a className="btn wa" href={`https://wa.me/?text=${encodeURIComponent(invite)}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}><Share2 size={18} /> {t('inviteTitle')}</a>
 

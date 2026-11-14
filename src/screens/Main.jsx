@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ArrowLeft, Play, Lock, Check, Flame, Star, Clock, ChevronRight, Search, Share2, Crown, Sparkles, TrendingUp, Droplet, Lightbulb } from 'lucide-react'
-import { useStore, activeProfile, stats, canPlay, isPlus, dayStr, addDays, weekStart, rank } from '../lib/store.jsx'
+import { useStore, activeProfile, stats, canPlay, isPlus, dayStr, addDays, weekStart, rank, FREE_LAUNCH } from '../lib/store.jsx'
 import { useT, TIPS } from '../lib/i18n.js'
 import { JOURNEYS, JMAP, QUICK, PEAKS, recommend } from '../data/journeys.js'
 import { EXERCISES } from '../data/exercises.js'
@@ -177,7 +177,7 @@ function JourneyCard({ j, nav }) {
           <div className="row wrap" style={{ gap: 6, marginTop: 6 }}>
             {p.journeyId === j.id && <span className="chip">{t('current')}</span>}
             <span className="chip plain">{t('weeksN', { n: j.weeks })}</span>
-            {j.premium ? (isPlus(state) ? null : <span className="chip gold"><Crown size={12} /> {t('week1Free')}</span>) : <span className="chip ok">{t('free')}</span>}
+            {FREE_LAUNCH ? null : j.premium ? (isPlus(state) ? null : <span className="chip gold"><Crown size={12} /> {t('week1Free')}</span>) : <span className="chip ok">{t('free')}</span>}
           </div>
         </div>
         <ChevronRight size={20} className="muted" />
