@@ -105,3 +105,15 @@ export async function keepAwake() {
 export function buzz(pattern) {
   try { navigator.vibrate?.(pattern) } catch { /* not supported */ }
 }
+
+// ---- Exercise videos ----
+// public/video/manifest.json lists the exercise ids that have a looping clip at
+// public/video/<id>.mp4. Moves without a clip fall back to the drawn figure.
+let videoIds = new Set()
+export async function loadVideoPack() {
+  try {
+    const r = await fetch('./video/manifest.json', { cache: 'no-cache' })
+    if (r.ok) videoIds = new Set(await r.json())
+  } catch { /* offline or no pack */ }
+}
+export const hasVideo = (id) => videoIds.has(id)

@@ -1,17 +1,39 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { APP, PLANS, FREE_PROFILES, PAYMENTS } from '../config.js'
+import { JMAP, recommend } from '../data/journeys.js'
+import { START_TIERS } from '../data/exercises.js'
 
 // While the app is free, everyone gets full access and no paywall is shown anywhere.
 export const FREE_LAUNCH = PAYMENTS.mode === 'free'
 
-const blank = () => ({ v: 1, lang: null, profiles: [], activeId: null, premium: null, settings: { voice: true, sound: true, bigText: false } })
+const blank = () => ({ v: 2, lang: null, profiles: [], activeId: null, premium: null, settings: { voice: true, sound: true, bigText: false } })
 
 function load() {
   try {
     const raw = localStorage.getItem(APP.storageKey)
-    if (raw) return { ...blank(), ...JSON.parse(raw) }
+    if (raw) return migrate({ ...blank(), ...JSON.parse(raw) })
   } catch { /* storage unavailable or corrupt: start fresh */ }
   return blank()
+}
+
+// Bring data saved by earlier versions up to the current shape.
+const OLD_LIMITS = { knee: 'knees', shoulder: 'shoulders', back: 'back', knees: 'knees', shoulders: 'shoulders', wrists: 'wrists' }
+export function migrate(s) {
+  for (const p of s.profiles || []) {
+    if ((p.limits || []).includes('impact')) p.quiet = true
+    p.limits = [...new Set((p.limits || []).map((l) => OLD_LIMITS[l]).filter(Boolean))]
+    if (!['lose', 'strong', 'active'].includes(p.goal)) p.goal = 'active'
+    p.tiers = { ...START_TIERS[p.level || 'beginner'], ...(p.tiers || {}) }
+    p.volume = p.volume || p.difficulty || 1
+    p.rest = p.rest || 45
+    p.streaks = p.streaks || {}
+    p.pbs = p.pbs || {}
+    p.completed = p.completed || []
+    p.progress = p.progress || {}
+    if (!JMAP[p.journeyId]) p.journeyId = recommend(p)
+  }
+  s.v = 2
+  return s
 }
 
 const Ctx = createContext(null)
@@ -22,7 +44,7 @@ export function StoreProvider({ children }) {
     try { localStorage.setItem(APP.storageKey, JSON.stringify(state)) } catch { /* ignore quota errors */ }
   }, [state])
   const update = useCallback((fn) => setState((prev) => { const next = structuredClone(prev); fn(next); return next }), [])
-  const replace = useCallback((s) => setState({ ...blank(), ...s }), [])
+  const replace = useCallback((s) => setState(migrate({ ...blank(), ...s })), [])
   return <Ctx.Provider value={{ state, update, replace }}>{children}</Ctx.Provider>
 }
 
@@ -54,11 +76,6 @@ export function maxProfiles(s) {
   if (!isPlus(s)) return FREE_PROFILES
   return PLANS.find((p) => p.id === s.premium.plan)?.profiles || 3
 }
-// Week 1 of every Plus journey is free to try.
-export function canPlay(s, journey, index) {
-  const days = Math.min(6, Math.max(2, activeProfile(s)?.days || journey.perWeek || 3))
-  return !journey.premium || isPlus(s) || index < days
-}
 
 export function stats(p) {
   const days = new Set(p.history.map((h) => h.date))
@@ -83,9 +100,9 @@ export function stats(p) {
 }
 
 export const RANKS = [
-  { at: 0, en: 'Naya Khiladi', hi: 'नया खिलाड़ी' },
-  { at: 300, en: 'Josheela', hi: 'जोशीला' },
-  { at: 1000, en: 'Dumdaar', hi: 'दमदार' },
+  { at: 0, en: 'Rookie', hi: 'नया खिलाड़ी' },
+  { at: 300, en: 'Contender', hi: 'जोशीला' },
+  { at: 1000, en: 'Athlete', hi: 'दमदार' },
   { at: 2500, en: 'Pehlwan', hi: 'पहलवान' },
   { at: 6000, en: 'Ustaad', hi: 'उस्ताद' },
 ]
@@ -110,10 +127,13 @@ export function badges(p) {
 }
 
 export function newProfile(data) {
-  return {
+  const p = {
     id: Math.random().toString(36).slice(2, 10),
-    name: '', age: 'adult', goal: 'active', level: 'beginner', limits: [], kg: null, cm: null, days: 3,
-    journeyId: null, progress: {}, completed: [], difficulty: 1, history: [], weights: [], water: {}, pbs: {}, points: 0,
+    name: '', goal: 'active', level: 'beginner', limits: [], quiet: false, kg: null, cm: null, days: 3,
+    journeyId: null, progress: {}, completed: [], history: [], weights: [], pbs: {}, points: 0,
+    volume: 1, rest: 45, streaks: {}, adapt: null,
     ...data,
   }
+  p.tiers = { ...START_TIERS[p.level], ...(data.tiers || {}) }
+  return p
 }

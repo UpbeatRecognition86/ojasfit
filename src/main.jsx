@@ -4,9 +4,10 @@ import App from './App.jsx'
 import { StoreProvider } from './lib/store.jsx'
 import '@fontsource-variable/anek-devanagari/wght.css'
 import './styles.css'
-import { loadVoicePack } from './lib/media.js'
+import { loadVoicePack, loadVideoPack } from './lib/media.js'
 
 loadVoicePack()
+loadVideoPack()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -6,9 +6,9 @@ import { JOURNEYS, JMAP, recommend } from '../data/journeys.js'
 import { APP } from '../config.js'
 import Glyph from '../components/Glyph.jsx'
 
-const GOALS = [['lose', 'flame'], ['strong', 'dumbbell'], ['active', 'activity'], ['flex', 'wind']]
+const GOALS = [['lose', 'flame'], ['strong', 'dumbbell'], ['active', 'activity']]
 const LEVELS = [['beginner', 'sprout'], ['inter', 'leaf'], ['advanced', 'tree']]
-export const LIMITS = ['knee', 'back', 'shoulder', 'impact', 'floor']
+export const LIMITS = ['knees', 'back', 'shoulders', 'wrists']
 
 export function JourneyOption({ j, on, onClick, badge }) {
   const { t, L } = useT()
@@ -33,7 +33,7 @@ export default function Onboarding({ add = false, onDone }) {
   const { t } = useT()
   const steps = add ? ['who', 'goal', 'level', 'health', 'body', 'plan'] : ['lang', 'who', 'goal', 'level', 'health', 'body', 'plan']
   const [i, setI] = useState(0)
-  const [d, setD] = useState({ name: '', goal: 'active', level: 'beginner', days: 3, limits: [], kg: '', cm: '' })
+  const [d, setD] = useState({ name: '', goal: 'active', level: 'beginner', days: 3, limits: [], quiet: false, kg: '', cm: '' })
   const [jid, setJid] = useState(null)
   const set = (patch) => setD((x) => ({ ...x, ...patch }))
   const step = steps[i]
@@ -45,7 +45,7 @@ export default function Onboarding({ add = false, onDone }) {
   const next = () => {
     if (i < steps.length - 1) return setI(i + 1)
     const p = newProfile({
-      name: d.name.trim(), goal: d.goal, level: d.level, days: d.days, limits: d.limits,
+      name: d.name.trim(), goal: d.goal, level: d.level, days: d.days, limits: d.limits, quiet: d.quiet,
       kg: Number(d.kg) || null, cm: Number(d.cm) || null, journeyId: chosen,
     })
     if (p.kg) p.weights.push({ date: dayStr(), kg: p.kg })
@@ -132,6 +132,10 @@ export default function Onboarding({ add = false, onDone }) {
               <span className="grow"><b>{t('limit_none')}</b></span>{d.limits.length === 0 && <Check size={20} />}
             </button>
           </div>
+          <button className={`opt ${d.quiet ? 'on' : ''}`} onClick={() => set({ quiet: !d.quiet })} role="switch" aria-checked={d.quiet}>
+            <span className="grow"><b>{t('quietHome')}</b><span className="muted small">{t('quietHomeD')}</span></span>
+            <span className={`switch ${d.quiet ? 'on' : ''}`} />
+          </button>
           <p className="note warn">{t('doctorNote')}</p>
         </>
       )}

@@ -1,15 +1,15 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Home as HomeIcon, Map as MapIcon, Compass, BarChart3, User } from 'lucide-react'
+import { Sparkles, Map as MapIcon, Dumbbell, BarChart3, User } from 'lucide-react'
 import { useStore, activeProfile, stats, dayStr } from './lib/store.jsx'
 import { useT } from './lib/i18n.js'
-import { JMAP, QMAP, PMAP } from './data/journeys.js'
+import { JMAP, PMAP } from './data/journeys.js'
 import { totalSessions, daysPerWeek } from './lib/plan.js'
 import Onboarding from './screens/Onboarding.jsx'
 import Session from './screens/Session.jsx'
-import { Home, Journeys, JourneyDetail, Explore, Done } from './screens/Main.jsx'
+import { Home, Journeys, JourneyDetail, Explore, Calibrate, Recap } from './screens/Main.jsx'
 import { Progress, Profile, Paywall } from './screens/Me.jsx'
 
-const TABS = [['home', HomeIcon], ["journeys", MapIcon], ['explore', Compass], ['progress', BarChart3], ['profile', User]]
+const TABS = [['home', Sparkles], ["journeys", MapIcon], ['explore', Dumbbell], ['progress', BarChart3], ['profile', User]]
 const isTab = (n) => TABS.some(([t]) => t === n)
 
 export default function App() {
@@ -35,12 +35,11 @@ export default function App() {
 
   const go = useCallback((name, params = {}) => { const r = { name, ...params }; history.pushState(r, ''); setRoute(r) }, [])
   const swap = useCallback((name, params = {}) => { const r = { name, ...params }; history.replaceState(r, ''); setRoute(r) }, [])
-  const nav = { go, back: () => history.back(), tab: (name) => (isTab(route.name) ? swap(name) : go(name)) }
+  const nav = { go, swap, back: () => history.back(), tab: (name) => (isTab(route.name) ? swap(name) : go(name)) }
 
   if (!onboarded || !profile) return <div className="app"><Onboarding onDone={() => { setOnboarded(true); swap('home') }} /></div>
 
-  const finish = (tpl, index, kind) => ({ seconds, session }) => {
-    const isJourney = kind === 'j'
+  const finish = (tpl, index, isJourney) => ({ seconds, coreSeconds, session, reps, loops }) => {
     const minutes = Math.max(1, Math.round(seconds / 60))
     const kcal = Math.round(session.kcalPerSec * seconds)
     const hid = Date.now()
@@ -49,19 +48,24 @@ export default function App() {
       const st = stats(p)
       const first = !st.days.has(dayStr())
       p.pbs = p.pbs || {}
-      const pb = kind === 'p' && (!p.pbs[tpl.id] || seconds < p.pbs[tpl.id])
-      if (pb) p.pbs[tpl.id] = seconds
+      // Any for-time session on a Peak (a benchmark inside a journey, or a Peak on its own) can set a record.
+      const pid = session.forTime ? session.peakId : null
+      const time = pid ? Math.max(1, coreSeconds) : null
+      const pb = !!pid && (!p.pbs[pid] || time < p.pbs[pid])
+      if (pb) p.pbs[pid] = time
       const points = minutes * 10 + (first ? 20 + Math.min(st.streak, 7) * 5 : 0) + (pb ? 50 : 0)
-      p.history.push({ id: hid, date: dayStr(), title: session.title, jid: isJourney ? tpl.id : null, qid: kind === 'q' ? tpl.id : null, pid: kind === 'p' ? tpl.id : null, minutes, seconds, kcal, points, pb })
+      const entry = { id: hid, date: dayStr(), title: session.title, jid: isJourney ? tpl.id : null, pid, format: session.format, minutes, seconds, time, kcal, points, pb, reps, trees: session.trees }
+      if (session.format === 'amrap') entry.loops = loops
+      p.history.push(entry)
       p.points += points
       if (isJourney && (p.progress[tpl.id] || 0) === index) {
         p.progress[tpl.id] = index + 1
         const dpw = daysPerWeek(tpl, p)
-        if ((index + 1) % dpw === 0) p.history[p.history.length - 1].weekDone = (index + 1) / dpw
+        if ((index + 1) % dpw === 0) entry.weekDone = (index + 1) / dpw
         if (index + 1 >= totalSessions(tpl, p) && !p.completed.includes(tpl.id)) p.completed.push(tpl.id)
       }
     })
-    swap('done', { hid })
+    swap('calibrate', { hid })
   }
 
   let body
@@ -72,13 +76,13 @@ export default function App() {
     case 'progress': body = <Progress />; break
     case 'profile': body = <Profile nav={nav} />; break
     case 'paywall': body = <Paywall nav={nav} />; break
-    case 'done': body = <Done hid={route.hid} nav={nav} />; break
+    case 'calibrate': body = <Calibrate hid={route.hid} nav={nav} />; break
+    case 'recap': body = <Recap hid={route.hid} nav={nav} />; break
     case 'addProfile': body = <Onboarding add onDone={nav.back} />; break
     case 'session': {
-      const tpl = route.jid ? JMAP[route.jid] : route.pid ? PMAP[route.pid] : QMAP[route.qid]
-      const kind = route.jid ? 'j' : route.pid ? 'p' : 'q'
+      const tpl = route.jid ? JMAP[route.jid] : PMAP[route.pid]
       body = tpl
-        ? <Session tpl={tpl} index={route.idx || 0} onBack={nav.back} onFinish={finish(tpl, route.idx || 0, kind)} />
+        ? <Session tpl={tpl} index={route.idx || 0} onBack={nav.back} onFinish={finish(tpl, route.idx || 0, !!route.jid)} />
         : <Home nav={nav} />
       break
     }

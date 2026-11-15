@@ -1,6 +1,6 @@
 # OjasFit voice script
 
-61 lines per language. Record **one audio file per language**, reading the lines
+59 lines per language. Record **one audio file per language**, reading the lines
 **in this order**.
 
 How to record
@@ -29,54 +29,52 @@ How to record
 11. हाथ घुमाना
 12. बगल में झुकना
 13. कमर घुमाना
-14. टखने घुमाना
-15. मार्जरी आसन
-16. जंपिंग जैक
-17. स्टेप जैक
-18. हाई नीज़
+14. मार्जरी आसन
+15. जंपिंग जैक
+16. स्टेप जैक
+17. हाई नीज़
+18. घुटना-कोहनी मार्च
 19. बिना रस्सी की रस्सी कूद
 20. माउंटेन क्लाइंबर
-21. स्क्वैट थ्रस्ट
-22. शैडो बॉक्सिंग
-23. भांगड़ा बाउंस
-24. तेज़ चाल
+21. बर्पी
+22. स्प्रॉल (बिना कूद)
+23. शैडो बॉक्सिंग
+24. कुर्सी स्क्वैट
 25. बैठक (स्क्वैट)
-26. देसी बैठक
+26. लंजेस
 27. जंप स्क्वैट
-28. कुर्सी से उठना-बैठना
-29. वॉल सिट
-30. लंजेस
-31. सेतु बंध (ब्रिज)
-32. एड़ी उठाना
-33. पैर बगल में उठाना
-34. दीवार पुश-अप
-35. घुटनों वाले पुश-अप
-36. दंड (पुश-अप)
-37. देसी दंड
-38. सुपरमैन
-39. बर्ड डॉग
-40. प्लैंक
-41. क्रंचेस
-42. लेग रेज़
-43. खड़े होकर घुटना-कोहनी
-44. सूर्य नमस्कार
-45. ताड़ासन
-46. वृक्षासन
-47. एक पैर पर खड़े होना
-48. भुजंगासन
-49. अधोमुख श्वानासन
-50. उत्तानासन
-51. बालासन
-52. तितली आसन
-53. अनुलोम-विलोम
-54. शवासन
-55. बैठकर मार्च
-56. बैठकर हाथ उठाना
-57. बैठकर पैर सीधा करना
-58. मेंढक कूद
-59. भालू चाल
-60. सितारा कूद
-61. लंगड़ी
+28. कोसैक स्क्वैट
+29. पिस्टल स्क्वैट
+30. टेम्पो स्क्वैट
+31. देसी बैठक
+32. स्प्लिट स्क्वैट
+33. ग्लूट ब्रिज
+34. वॉल सिट
+35. काफ़ रेज़
+36. वॉकआउट
+37. दीवार पुश-अप
+38. इन्क्लाइन पुश-अप
+39. घुटनों वाले पुश-अप
+40. दंड (पुश-अप)
+41. डायमंड पुश-अप
+42. डिक्लाइन पुश-अप
+43. पाइक पुश-अप
+44. देसी दंड
+45. शोल्डर टैप
+46. क्रंचेस
+47. लेग रेज़
+48. प्लैंक
+49. जैकनाइफ़
+50. हॉलो होल्ड
+51. वी-अप
+52. सुपरमैन
+53. बर्ड डॉग
+54. आगे झुकना
+55. भुजंगासन
+56. बालासन
+57. अधोमुख श्वानासन
+58. ताड़ासन
+59. गहरी साँस
 
 ## English (voice-en)
 
@@ -93,51 +91,49 @@ How to record
 11. Arm Circles
 12. Side Bends
 13. Standing Twists
-14. Ankle Circles
-15. Cat–Cow
-16. Jumping Jacks
-17. Step Jacks
-18. High Knees
-19. Invisible Rope Skipping
+14. Cat–Cow
+15. Jumping Jacks
+16. Step Jacks
+17. High Knees
+18. Marching Knee Drives
+19. Invisible Rope
 20. Mountain Climbers
-21. Squat Thrusts
-22. Shadow Boxing
-23. Bhangra Bounce
-24. Brisk Walk
-25. Baithak (Squat)
-26. Desi Baithak
+21. Burpees
+22. Sprawls (No Jump)
+23. Shadow Boxing
+24. Assisted Squat (Chair)
+25. Baithak (Air Squat)
+26. Lunges
 27. Jump Squats
-28. Chair Sit-to-Stand
-29. Wall Sit
-30. Lunges
-31. Glute Bridge
-32. Heel Raises
-33. Side Leg Raises
-34. Wall Push-ups
-35. Knee Push-ups
-36. Dand (Push-up)
-37. Desi Dand
-38. Superman
-39. Bird Dog
-40. Plank
-41. Crunches
-42. Leg Raises
-43. Standing Knee-to-Elbow
-44. Surya Namaskar
-45. Tadasana (Mountain Stretch)
-46. Vrikshasana (Tree Pose)
-47. One-Leg Stand
-48. Bhujangasana (Cobra)
-49. Adho Mukha (Downward Dog)
-50. Uttanasana (Forward Fold)
-51. Balasana (Child Pose)
-52. Titli Asana (Butterfly)
-53. Anulom Vilom (Calm Breathing)
-54. Shavasana
-55. Seated March
-56. Seated Arm Raises
-57. Seated Leg Extensions
-58. Mendhak Kood (Frog Jumps)
-59. Bhalu Chaal (Bear Walk)
-60. Star Jumps
-61. Langdi Hops
+28. Cossack Squats
+29. Pistol Squats
+30. Tempo Squats
+31. Desi Baithak
+32. Split Squats
+33. Glute Bridge
+34. Wall Sit
+35. Calf Raises
+36. Walkouts
+37. Wall Push-ups
+38. Incline Push-ups
+39. Knee Push-ups
+40. Dand (Push-up)
+41. Diamond Push-ups
+42. Decline Push-ups
+43. Pike Push-ups
+44. Desi Dand
+45. Shoulder Taps
+46. Crunches
+47. Leg Raises
+48. Plank
+49. Jackknives
+50. Hollow Hold
+51. V-Ups
+52. Superman
+53. Bird Dog
+54. Forward Fold
+55. Cobra Stretch
+56. Child Pose
+57. Downward Dog
+58. Overhead Stretch
+59. Deep Breathing
