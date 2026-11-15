@@ -281,6 +281,7 @@ export function Profile({ nav }) {
       </div>
 
       <p className="muted small center">{t('disclaimer')}</p>
+      <a className="link small center" href="./privacy.html" target="_blank" rel="noopener" style={{ padding: 8 }}>{t('privacy')}</a>
       {editing && <EditSheet onClose={() => setEditing(false)} />}
     </div>
   )

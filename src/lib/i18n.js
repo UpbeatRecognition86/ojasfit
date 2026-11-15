@@ -254,6 +254,7 @@ const S = {
   importBad: ['That file is not a valid backup.', 'यह फ़ाइल सही बैकअप नहीं है।'],
   reset: ['Erase everything', 'सब कुछ मिटाएँ'],
   resetAsk: ['Erase all profiles and history from this phone?', 'इस फ़ोन से सारी प्रोफ़ाइल और रिकॉर्ड मिटाएँ?'],
+  privacy: ['Privacy policy', 'गोपनीयता नीति'],
   disclaimer: ['This app gives general fitness guidance, not medical advice. Exercise at your own pace and consult a doctor if you have any health condition.', 'यह ऐप सामान्य फ़िटनेस जानकारी देता है, डॉक्टरी सलाह नहीं। अपनी क्षमता के अनुसार कसरत करें और कोई बीमारी हो तो डॉक्टर से पूछें।'],
 
   // paywall
