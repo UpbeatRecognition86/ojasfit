@@ -21,7 +21,7 @@ terminal, then `node scripts/store-shots.cjs`.
 
 - **App category:** Health & Fitness
 - **Tags:** pick the closest to Home workout, Fitness coach, Yoga, Weight loss
-- **Contact email:** required and shown publicly; use the same address as the privacy policy
+- **Contact email:** ojasfitindia@gmail.com (shown publicly; same as the privacy policy)
 - **Website:** https://ojasfit.co.in
 - **Privacy policy URL:** https://ojasfit.co.in/privacy.html
 - **Price:** Free. Note: Google never lets a free app become a paid download later.
