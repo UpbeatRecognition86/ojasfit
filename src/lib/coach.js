@@ -12,8 +12,8 @@ export function coachMessage(p, ctx) {
   if (ctx.weekDone) return { key: 'c_weekDone', vars: { n: ctx.dpw } }
   const doneToday = st.days.has(today)
   if (doneToday && last.pb) return { key: 'c_pb', vars: { name } }
-  if (doneToday && last.felt === 'easy') return { key: 'c_easy', vars: {} }
-  if (doneToday && last.felt === 'hard') return { key: 'c_hard', vars: {} }
+  if (last.rpe && last.rpe <= 2) return { key: 'c_easy', vars: {} }
+  if (last.rpe && last.rpe >= 4) return { key: 'c_hard', vars: {} }
   if (doneToday) return { key: st.streak >= 3 ? 'c_streak' : 'c_doneToday', vars: { n: st.streak } }
   let gap = 0
   let d = addDays(today, -1)

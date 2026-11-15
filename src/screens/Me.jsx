@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { ArrowLeft, Check, Crown, Plus, Trash2, Share2, Download, Upload, Pencil } from 'lucide-react'
 import { useStore, activeProfile, stats, isPlus, maxProfiles, dayStr, addDays, weekStart, badges, rank, FREE_LAUNCH } from '../lib/store.jsx'
 import { useT, LANGS } from '../lib/i18n.js'
-import { JMAP, QMAP, PMAP } from '../data/journeys.js'
+import { JMAP, PMAP } from '../data/journeys.js'
 import { APP, PLANS, PAYMENTS } from '../config.js'
 import { purchase } from '../lib/payments.js'
 import { LIMITS } from './Onboarding.jsx'
@@ -11,7 +11,7 @@ import Sheet from '../components/Sheet.jsx'
 import { weeklyMinutes } from '../lib/coach.js'
 import { PEAKS } from '../data/journeys.js'
 
-export const clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+import { clock } from './Session.jsx'
 
 function bmiInfo(kg, cm) {
   if (!kg || !cm) return null
@@ -122,11 +122,11 @@ export function Progress() {
         {p.history.length === 0 && <p className="muted small" style={{ marginTop: 8 }}>{t('noHistory')}</p>}
         <div className="list">
           {p.history.slice(-10).reverse().map((h) => {
-            const src = JMAP[h.jid] || QMAP[h.qid] || PMAP[h.pid]
+            const src = JMAP[h.jid] || PMAP[h.pid]
             return (
               <div className="li" key={h.id}>
                 <span className="jbadge sm" style={src?.color ? { background: src.color + '1c', color: src.color } : null}><Glyph id={src?.icon || 'activity'} size={20} /></span>
-                <span className="grow"><b>{L(h.title)}</b><span className="muted small" style={{ display: 'block' }}>{h.date} · {h.pid ? clock(h.seconds) : `${h.minutes} ${t('min')}`} · {h.kcal} {t('kcal')}{h.pb ? ' · 🏆' : ''}</span></span>
+                <span className="grow"><b>{L(h.title)}</b><span className="muted small" style={{ display: 'block' }}>{h.date} · {h.pid ? clock(h.time ?? h.seconds) : `${h.minutes} ${t('min')}`} · {h.kcal} {t('kcal')}{h.pb ? ' · 🏆' : ''}</span></span>
                 <span className="chip gold">+{h.points}</span>
               </div>
             )
@@ -149,12 +149,12 @@ function EditSheet({ onClose }) {
   const { state, update } = useStore()
   const { t } = useT()
   const p = activeProfile(state)
-  const [d, setD] = useState({ name: p.name, level: p.level, days: p.days, limits: p.limits, kg: p.kg || '', cm: p.cm || '' })
+  const [d, setD] = useState({ name: p.name, level: p.level, days: p.days, limits: p.limits, quiet: !!p.quiet, kg: p.kg || '', cm: p.cm || '' })
   const set = (patch) => setD((x) => ({ ...x, ...patch }))
   const save = () => {
     update((s) => {
       const pp = activeProfile(s)
-      Object.assign(pp, { name: d.name.trim() || pp.name, level: d.level, days: d.days, limits: d.limits, kg: Number(d.kg) || null, cm: Number(d.cm) || null })
+      Object.assign(pp, { name: d.name.trim() || pp.name, level: d.level, days: d.days, limits: d.limits, quiet: d.quiet, kg: Number(d.kg) || null, cm: Number(d.cm) || null })
     })
     onClose()
   }
@@ -171,6 +171,10 @@ function EditSheet({ onClose }) {
             <button key={id} className={`pill ${d.limits.includes(id) ? 'on' : ''}`} onClick={() => set({ limits: d.limits.includes(id) ? d.limits.filter((x) => x !== id) : [...d.limits, id] })}>{t('limit_' + id)}</button>
           ))}
         </div>
+        <button className={`opt ${d.quiet ? 'on' : ''}`} onClick={() => set({ quiet: !d.quiet })} role="switch" aria-checked={d.quiet}>
+          <span className="grow"><b>{t('quietHome')}</b><span className="muted small">{t('quietHomeD')}</span></span>
+          <span className={`switch ${d.quiet ? 'on' : ''}`} />
+        </button>
         <div className="row">
           <label className="field grow">{t('kg')}<input className="input" inputMode="decimal" value={d.kg} onChange={(e) => set({ kg: e.target.value.replace(/[^\d.]/g, '').slice(0, 5) })} /></label>
           <label className="field grow">{t('cm')}<input className="input" inputMode="numeric" value={d.cm} onChange={(e) => set({ cm: e.target.value.replace(/\D/g, '').slice(0, 3) })} /></label>

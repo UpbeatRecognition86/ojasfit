@@ -7,25 +7,25 @@ Live at **https://ojasfit.co.in**.
 
 ## What is in it
 
-- **One adaptive Coach** — not age-specific. You pick a goal, level and how many days a week you
-  train; the Coach plans each week around that and scales it to your "too easy / too hard" feedback
-- **10 journeys** (multi-week programs): first steps, walking, Surya Namaskar, fat loss,
-  dand-baithak strength, easy-on-joints, chair fit, women's strength, desk detox, wedding prep
-- **Peaks** — the Freeletics "God/Hell" idea: fixed, named workouts (Nilgiri, Aravalli, Sahyadri,
-  Vindhya, Nanda Devi, Kanchenjunga) done **for time**. The work never changes, so a faster time is
-  real, measurable progress. Personal best stored per peak.
-- Moves are swapped automatically for knee, back, shoulder pain, "no jumping", or difficulty
-  getting on the floor
-- **Guided player** — animated figure, ring timer, halfway and switch-sides cues, vibration, rest
-  screens, spoken coaching in Hindi or English
-- **Session options** — "Short on time" trims any session; "Quiet mode" removes jumping for flats
-  and late nights. Swapped moves are labelled so the adaptation is visible
-- **Coach messages** — the Coach explains what it changed and why (after feedback, a gap, a streak)
-- **Family profiles**, streaks, points and ranks, badges, weight log, BMI with Indian cut-offs,
-  water tracker, WhatsApp sharing
-- **Freemium paywall** — 3 free journeys, free Peaks, week 1 of every other journey free, Plus at ₹99/month,
-  ₹599/year, ₹999/year family
-- Installable PWA that works offline; all data stays on the phone
+- **Adaptive Coach** — after each session the athlete rates effort (1–5) and technique (1–3).
+  That sets the next session's volume and rest, and moves them up or down the skill ladders
+- **Three journeys** (Bodyweight Shred, Desi Strength, Living Room Express), each periodised:
+  calibration → base → intensity → deload → peak week, opening and closing with a benchmark test
+- **Sessions in four phases** — warm-up, weekly skill practice, core workout, cool-down. The core
+  runs as intervals, for time, AMRAP or EMOM
+- **Skill ladders** for push, legs and core, six rungs each
+- **Peaks** — fixed for-time workouts with a personal best per peak
+- **Adapt session** — quiet mode, small space, 20 or 15 minutes, sore body parts; saved for the day
+- **Guided player** — video slot (falls back to an animated figure), giant rep counter, timers,
+  voice coaching from recorded clips or the phone's text-to-speech
+- **Recap** — result card shared as an image through the phone's share sheet
+- Hindi + English, several profiles per phone, offline PWA; all data stays on the device
+
+## Adding real content
+
+- **Exercise videos:** put a looping clip at `public/video/<exercise id>.mp4` and add the id to
+  `public/video/manifest.json`. The player and exercise sheets use it instead of the figure.
+- **Coach voice:** see `VOICE-SCRIPT.md` and `scripts/split-voice.mjs`.
 
 ## Run
 
@@ -42,9 +42,9 @@ Every push to `main` builds the app and publishes it to GitHub Pages (`.github/w
 | What | File |
 | --- | --- |
 | Name, prices, payment mode | `src/config.js` |
-| Exercises (names, cues, swaps) | `src/data/exercises.js` |
-| Journeys, quick workouts, Peaks | `src/data/journeys.js` |
-| Session generator and progression | `src/lib/plan.js` |
+| Exercises, substitutions, skill ladders | `src/data/exercises.js` |
+| Journeys, training phases, Peaks | `src/data/journeys.js` |
+| Coach engine: session builder, adaptation, feedback | `src/lib/plan.js` |
 | All UI text, both languages | `src/lib/i18n.js` |
 | Stick-figure poses | `src/components/Figure.jsx` |
 
