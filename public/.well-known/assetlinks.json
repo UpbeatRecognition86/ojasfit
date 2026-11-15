@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "in.co.ojasfit.app",
+      "sha256_cert_fingerprints": [
+        "0A:67:04:D3:50:13:16:2C:79:1B:26:02:24:46:0D:45:65:BE:7E:B0:37:55:81:CA:04:E8:33:45:91:24:F4:38"
+      ]
+    }
+  }
+]
