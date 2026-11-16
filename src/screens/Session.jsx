@@ -150,7 +150,7 @@ export default function Session({ tpl, index, split: split0, onBack, onFinish })
   const sections = [['warm', first(by('warm'))], ['skill', by('skill').slice(0, 1)], ['drill', by('drill')], ['core', first(by('core', 1))], ...blocks.map((b) => ['acc' + b, first(by('core', b))]), ['cool', first(by('cool'))]].filter(([, l]) => l.length)
   const roundsOf = (list) => list[0]?.rounds || 1
   const n = adaptCount(adapt)
-  const coreLabel = session.format === 'intervals' || session.format === 'fortime' ? t('roundsN', { n: session.steps.find((s) => s.section === 'core')?.rounds || 1 }) : `${Math.round(session.cap / 60)} ${t('min')}`
+  const coreLabel = session.format === 'intervals' || session.format === 'fortime' ? (roundsOf(by('core', 1)) === 1 ? t('round1') : t('roundsN', { n: roundsOf(by('core', 1)) })) : `${Math.round(session.cap / 60)} ${t('min')}`
   const drillDef = session.drill ? DRILLS[session.drill.id] : null
   return (
     <div className="screen plain">

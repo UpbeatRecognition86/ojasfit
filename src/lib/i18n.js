@@ -396,6 +396,7 @@ const S = {
   planSub: ['Picked for your goal. You can switch any time.', 'आपके लक्ष्य के हिसाब से चुनी गई। कभी भी बदल सकते हैं।'],
   // ---------- peaks, splits, drills, session length ----------
   drill: ['Tatva drill', 'तत्व ड्रिल'],
+  round1: ['1 round', '1 राउंड'],
   accessory: ['Accessory', 'एक्सेसरी'],
   sum_drill: ['{x} drill ({m} min)', '{x} ड्रिल ({m} मिनट)'],
   sum_acc: ['Accessory strength ({m} min)', 'एक्सेसरी ताक़त ({m} मिनट)'],
