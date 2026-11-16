@@ -70,7 +70,7 @@ export function Progress() {
       </div>
 
       <div className="card stack">
-        <div className="row between"><h3>{t('weeklyMin')}</h3>{wk[7].minutes > wk[6].minutes && wk[6].minutes > 0 && <span className="chip ok">+{wk[7].minutes - wk[6].minutes} {t('min')}</span>}</div>
+        <div className="row between"><h2 className="h3">{t('weeklyMin')}</h2>{wk[7].minutes > wk[6].minutes && wk[6].minutes > 0 && <span className="chip ok">+{wk[7].minutes - wk[6].minutes} {t('min')}</span>}</div>
         <div className="bars">
           {wk.map((w, n) => (
             <div key={w.start} className={`${n === 7 ? 'now' : ''} ${w.minutes ? 'has' : ''}`}>
@@ -84,7 +84,7 @@ export function Progress() {
 
       {bests.length > 0 && (
         <div className="card">
-          <h3>{t('yourBests')}</h3>
+          <h2 className="h3">{t('yourBests')}</h2>
           <div className="list">
             {bests.map((x) => <div className="li" key={x.id}><span className="grow"><b>{L(x.name)}</b> <span className="chip plain">{t('lvl_' + x.lvl)}</span></span><b style={{ fontVariantNumeric: 'tabular-nums' }}>{clock(p.pbs[x.id])}</b></div>)}
           </div>
@@ -92,12 +92,12 @@ export function Progress() {
       )}
 
       <div className="card stack">
-        <h3>{t('last12')}</h3>
+        <h2 className="h3">{t('last12')}</h2>
         <div className="heat">{cells.map((d) => <i key={d} className={`${st.days.has(d) ? 'on' : ''} ${d > today ? 'future' : ''}`} />)}</div>
       </div>
 
       <div className="card stack">
-        <div className="row between"><h3>{t('weight')}</h3>{latest && <b>{latest} kg</b>}</div>
+        <div className="row between"><h2 className="h3">{t('weight')}</h2>{latest && <b>{latest} kg</b>}</div>
         <WeightChart points={p.weights} />
         {p.weights.length < 2 && <p className="muted small">{t('noWeight')}</p>}
         <div className="row">
@@ -113,12 +113,12 @@ export function Progress() {
       </div>
 
       <div className="card stack">
-        <h3>{t('badges')}</h3>
+        <h2 className="h3">{t('badges')}</h2>
         <div className="badges">{badges(p).map((b) => <div key={b.id} className={`badge ${b.got ? 'got' : ''}`}><span><Glyph id={b.icon} size={24} /></span>{L(b)}</div>)}</div>
       </div>
 
       <div className="card">
-        <h3>{t('history')}</h3>
+        <h2 className="h3">{t('history')}</h2>
         {p.history.length === 0 && <p className="muted small" style={{ marginTop: 8 }}>{t('noHistory')}</p>}
         <div className="list">
           {p.history.slice(-10).reverse().map((h) => {
@@ -161,11 +161,11 @@ function EditSheet({ onClose }) {
   return (
     <Sheet onClose={onClose}>
         <input className="input" value={d.name} maxLength={24} placeholder={t('namePh')} onChange={(e) => set({ name: e.target.value })} />
-        <h3>{t('levelTitle')}</h3>
+        <h2 className="h3">{t('levelTitle')}</h2>
         <div className="pills">{['beginner', 'inter', 'advanced'].map((l) => <button key={l} className={`pill ${d.level === l ? 'on' : ''}`} onClick={() => set({ level: l })}>{t('level_' + l)}</button>)}</div>
-        <h3>{t('daysTitle')}</h3>
+        <h2 className="h3">{t('daysTitle')}</h2>
         <div className="pills">{[2, 3, 4, 5, 6].map((n) => <button key={n} className={`pill ${d.days === n ? 'on' : ''}`} onClick={() => set({ days: n })}>{n}</button>)}</div>
-        <h3>{t('healthTitle')}</h3>
+        <h2 className="h3">{t('healthTitle')}</h2>
         <div className="pills">
           {LIMITS.map((id) => (
             <button key={id} className={`pill ${d.limits.includes(id) ? 'on' : ''}`} onClick={() => set({ limits: d.limits.includes(id) ? d.limits.filter((x) => x !== id) : [...d.limits, id] })}>{t('limit_' + id)}</button>
@@ -229,7 +229,7 @@ export function Profile({ nav }) {
       <h1>{t('tab_profile')}</h1>
 
       <div className="card">
-        <h3>{t('family')}</h3>
+        <h2 className="h3">{t('family')}</h2>
         <div className="list">
           {state.profiles.map((m) => (
             <div className="li" key={m.id}>
@@ -262,7 +262,7 @@ export function Profile({ nav }) {
       <a className="btn wa" href={`https://wa.me/?text=${encodeURIComponent(invite)}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}><Share2 size={18} /> {t('inviteTitle')}</a>
 
       <div className="card">
-        <h3>{t('settings')}</h3>
+        <h2 className="h3">{t('settings')}</h2>
         <div className="list">
           <div className="li">
             <span className="grow">{t('language')}</span>
@@ -275,7 +275,7 @@ export function Profile({ nav }) {
       </div>
 
       <div className="card stack">
-        <h3>{t('data')}</h3>
+        <h2 className="h3">{t('data')}</h2>
         <p className="muted small">{t('dataNote')}</p>
         <button className="btn ghost" onClick={exportData}><Download size={18} /> {t('export')}</button>
         <button className="btn ghost" onClick={() => file.current.click()}><Upload size={18} /> {t('import')}</button>

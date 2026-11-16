@@ -110,13 +110,13 @@ async function compose(browser, lang, shots) {
     await page.setContent(`<!doctype html><html lang="${lang}"><head><link rel="stylesheet" href="${BASE}${CSS}">
       <style>
         html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; }
-        body { font-family: 'Anek Devanagari Variable', sans-serif; background: linear-gradient(170deg, #12251b 0%, #0c0d10 55%, #0c0d10 100%); color: #fff; position: relative; }
+        body { font-family: 'Anek Devanagari Variable', sans-serif; background: linear-gradient(170deg, #2a1830 0%, #0b0d1a 55%, #0b0d1a 100%); color: #fff; position: relative; }
         .cap { position: absolute; top: 96px; left: 72px; right: 72px; text-align: center; }
         h1 { font-size: 74px; line-height: 1.08; margin: 0; font-weight: 750; letter-spacing: -0.02em; }
         p { font-size: 38px; margin: 20px 0 0; opacity: 0.9; font-weight: 500; }
-        .phone { position: absolute; left: 50%; top: 420px; transform: translateX(-50%); width: 760px; height: 1481px; border-radius: 70px; background: #2a2e39; padding: 14px; box-shadow: 0 40px 90px -20px rgba(0,230,118,0.25); }
+        .phone { position: absolute; left: 50%; top: 420px; transform: translateX(-50%); width: 760px; height: 1481px; border-radius: 70px; background: #2b3260; padding: 14px; box-shadow: 0 40px 90px -20px rgba(255,90,110,0.3); }
         .phone img { width: 100%; height: 100%; border-radius: 54px; display: block; object-fit: cover; object-position: top; }
-        .glow { position: absolute; width: 900px; height: 900px; right: -300px; top: -300px; border-radius: 50%; background: radial-gradient(circle, rgba(0,230,118,0.28), transparent 60%); }
+        .glow { position: absolute; width: 900px; height: 900px; right: -300px; top: -300px; border-radius: 50%; background: radial-gradient(circle, rgba(255,90,110,0.3), transparent 60%); }
       </style></head><body><div class="glow"></div>
       <div class="cap"><h1>${title}</h1><p>${sub}</p></div>
       <div class="phone"><img src="${img}"></div></body></html>`)
@@ -135,7 +135,7 @@ async function featureGraphic(browser, homeShot) {
   await page.setContent(`<!doctype html><html><head><link rel="stylesheet" href="${BASE}${CSS}">
     <style>
       html, body { margin: 0; width: 1024px; height: 500px; overflow: hidden; }
-      body { font-family: 'Anek Devanagari Variable', sans-serif; background: linear-gradient(135deg, #14161c, #0c0d10); color: #fff; position: relative; }
+      body { font-family: 'Anek Devanagari Variable', sans-serif; background: linear-gradient(135deg, #1f2547, #0b0d1a); color: #fff; position: relative; }
       .left { position: absolute; left: 64px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; gap: 14px; width: 520px; }
       .brand { display: flex; align-items: center; gap: 18px; }
       .brand img { width: 84px; height: 84px; border-radius: 22px; }
@@ -146,7 +146,7 @@ async function featureGraphic(browser, homeShot) {
       .pills span { border: 1.5px solid rgba(255,255,255,0.3); border-radius: 999px; padding: 4px 14px; font-size: 20px; font-weight: 600; }
       .phone { position: absolute; right: 70px; top: 46px; width: 300px; height: 584px; border-radius: 40px; background: #0c0a09; padding: 10px; transform: rotate(6deg); box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
       .phone img { width: 100%; height: 100%; border-radius: 31px; object-fit: cover; object-position: top; display: block; }
-      .glow { position: absolute; right: -120px; top: -160px; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, rgba(0,230,118,0.4), transparent 62%); }
+      .glow { position: absolute; right: -120px; top: -160px; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, rgba(255,90,110,0.42), transparent 62%); }
     </style></head><body><div class="glow"></div>
     <div class="left">
       <div class="brand"><img src="${icon}"><b>OjasFit</b></div>
