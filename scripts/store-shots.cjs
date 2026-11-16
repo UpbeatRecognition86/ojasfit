@@ -42,7 +42,7 @@ function seed(lang) {
     profiles: [{
       id: 'a', name: lang === 'hi' ? 'आयुष' : 'Ayush', goal: 'lose', level: 'inter', limits: [], quiet: false, kg: 71, cm: 172, days: 4,
       journeyId: 'shred', progress: { shred: 9 }, completed: [], volume: 1.08, rest: 45, streaks: {}, tiers: { push: 3, legs: 2, core: 3 },
-      weights: [[14, 72.4], [7, 71.6], [1, 71]].map(([n, kg]) => ({ date: day(n), kg })), pbs: { nilgiri: 398, satpura: 352 }, points: 1740, history,
+      weights: [[14, 72.4], [7, 71.6], [1, 71]].map(([n, kg]) => ({ date: day(n), kg })), pbs: { 'nilgiri:summit': 398, 'satpura:ridge': 232 }, length: 45, points: 1740, history,
     }],
   }
 }

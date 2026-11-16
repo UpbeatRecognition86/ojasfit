@@ -117,3 +117,15 @@ export async function loadVideoPack() {
   } catch { /* offline or no pack */ }
 }
 export const hasVideo = (id) => videoIds.has(id)
+
+// ---- Exercise photos ----
+// public/demo/manifest.json maps an exercise id to its number of frames (1 or 2);
+// the frames are public/demo/<id>-a.webp and <id>-b.webp. See DEMO-PROMPTS.md.
+let demoFrames = {}
+export async function loadDemoPack() {
+  try {
+    const r = await fetch('./demo/manifest.json', { cache: 'no-cache' })
+    if (r.ok) demoFrames = await r.json()
+  } catch { /* offline or no pack */ }
+}
+export const demoCount = (id) => demoFrames[id] || 0

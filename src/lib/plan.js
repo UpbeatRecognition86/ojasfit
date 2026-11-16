@@ -1,7 +1,6 @@
 import { EX, TREES, START_TIERS } from '../data/exercises.js'
-import { JMAP, PMAP, phaseOf } from '../data/journeys.js'
+import { JMAP, PMAP, PEAKS, DRILLS, SPLITS, splitRounds, phaseOf } from '../data/journeys.js'
 
-const LEVEL_F = { beginner: 0.7, inter: 1, advanced: 1.25 }
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
 
 export const tiersOf = (p) => ({ ...START_TIERS[p.level || 'beginner'], ...(p.tiers || {}) })
@@ -46,8 +45,22 @@ function amount(e, factor) {
 }
 export const stepSeconds = (s) => (s.type === 'reps' ? s.amount * EX[s.ex].spr : s.amount)
 
-// Build a playable session. `tpl` is a journey or a Peak.
-export function buildSession(tpl, index, profile, adapt = {}) {
+const LEVEL_N = { beginner: 1, inter: 2, advanced: 3 }
+// How much of a Peak the Coach assigns in each training phase.
+const PHASE_SPLIT = { calibrate: 'base', base: 'ridge', intensity: 'summit', deload: 'base', peak: 'summit' }
+
+// The Peak a journey's "peak day" uses: right type, at or below the athlete's level, rotating by week.
+function pickPeak(type, profile, week) {
+  const lvl = LEVEL_N[profile.level] || 1
+  let pool = PEAKS.filter((p) => p.type === type && p.lvl <= lvl)
+  if (!pool.length) pool = PEAKS.filter((p) => p.type === 'full' && p.lvl <= lvl)
+  const top = pool.filter((p) => p.lvl === Math.max(...pool.map((x) => x.lvl)))
+  const pick = week % 3 === 2 && pool.length > top.length ? pool.filter((p) => !top.includes(p)) : top
+  return pick[week % pick.length]
+}
+
+// Build a playable session. `tpl` is a journey or a Peak. opts.split picks the split of a standalone Peak.
+export function buildSession(tpl, index, profile, adapt = {}, opts = {}) {
   const ctx = contextFor(profile, adapt, tpl)
   const tiers = tiersOf(profile)
   const isJourney = !!tpl.pool
@@ -56,15 +69,25 @@ export function buildSession(tpl, index, profile, adapt = {}) {
   const day = index % dpw
   const total = isJourney ? totalSessions(tpl, profile) : 1
   const phase = isJourney ? phaseOf(week, tpl.weeks) : null
-  // First and last session of a journey are the benchmark Peak: a before/after test.
-  const benchmark = isJourney && (index === 0 || index === total - 1) ? PMAP[tpl.benchmark] : null
-  const src = benchmark || (isJourney ? tpl.pool[(index - 1 + tpl.pool.length) % tpl.pool.length] : tpl)
-  const fixed = !!src.fixed
-  let format = src.format
-  const express = ctx.time === 15 && !fixed
-  if (express) format = 'amrap'
   const restBetween = profile.rest || 45
-  const factor = fixed ? 1 : (LEVEL_F[profile.level] || 1) * (phase ? phase.mult : 1) * (profile.volume || 1)
+  const lvlN = LEVEL_N[profile.level] || 1
+
+  // What is today's main workout?
+  const isBench = isJourney && (index === 0 || index === total - 1)
+  const entry = isJourney && !isBench ? tpl.pool[(index - 1) % tpl.pool.length] : null
+  let peak = null
+  let split = 'summit'
+  if (!isJourney) { peak = tpl; split = SPLITS.includes(opts.split) ? opts.split : 'summit' }
+  else if (isBench) peak = PMAP[tpl.benchmark]
+  else if (entry.peak) { peak = pickPeak(entry.peak, profile, week); split = PHASE_SPLIT[phase.key] }
+  let src = peak || entry
+  if (ctx.time && entry?.peak) { src = { name: peak.name, format: 'intervals', rounds: 3, items: peak.items.map((it) => it[0]) }; peak = null }
+  // Full session = the athlete's chosen length. "Adapt session" time overrides it for the day.
+  const target = ctx.time || (isJourney ? profile.length || 45 : 0)
+  const full = isJourney && !ctx.time
+  const express = ctx.time === 15 && !peak
+  let format = peak ? 'fortime' : express ? 'amrap' : src.format
+  const factor = (LEVEL_N[profile.level] ? { 1: 0.7, 2: 1, 3: 1.25 }[lvlN] : 1) * (phase ? phase.mult : 1) * (profile.volume || 1)
 
   const steps = []
   const trees = new Set()
@@ -75,68 +98,139 @@ export function buildSession(tpl, index, profile, adapt = {}) {
     if (!id) return null
     const e = EX[id]
     const prev = steps[steps.length - 1]
-    if (prev && prev.ex === id && prev.section === section && prev.round === extra.round) return null
+    if (prev && prev.ex === id && prev.section === section && prev.round === extra.round && prev.block === extra.block && !extra.keep) return null
     if (tree && id === wanted) trees.add(tree)
-    const amt = extra.amount ?? (fixedAmt ? (id === wanted ? fixedAmt : amount(e, fixedAmt / EX[wanted].base)) : amount(e, section === 'core' ? factor : 1))
-    const st = { ex: id, type: e.type, amount: amt, section, rest: 0, swapped: id !== wanted ? wanted : null, ...extra }
+    let amt = extra.amount
+    if (amt == null) amt = fixedAmt ? (id === wanted ? fixedAmt : amount(e, fixedAmt / EX[wanted].base)) : amount(e, section === 'core' ? factor : 1)
+    else if (id !== wanted) amt = amount(e, (extra.amount / EX[wanted].base))
+    const st = { ex: id, type: e.type, section, rest: 0, swapped: id !== wanted ? wanted : null, ...extra, amount: amt }
+    delete st.keep
     steps.push(st)
     return st
   }
+  const secOf = (list, f) => list.reduce((a, it) => {
+    const id = resolve(slot(Array.isArray(it) ? it[0] : it, tiers).id, ctx)
+    if (!id) return a
+    const amt = amount(EX[id], f)
+    return a + (EX[id].type === 'reps' ? amt * EX[id].spr : amt)
+  }, 0)
+  const fitRounds = (list, seconds, lo, hi) => clamp(Math.round(seconds / Math.max(30, secOf(list, factor) + restBetween)), lo, hi)
+  const used = () => steps.reduce((a, st) => a + (st.type === 'emom' ? 60 : stepSeconds(st)) + st.rest, 0)
 
   // 1. Warm-up
-  const warm = ctx.time ? tpl.warm.slice(0, 2) : tpl.warm
+  const warm = ctx.time ? tpl.warm.slice(0, 2) : full && target >= 45 ? [...tpl.warm, 'knee_drive', 'side_bend'] : tpl.warm
   for (const id of warm) { const st = push(id, 'warm'); if (st) st.rest = 5 }
 
-  // 2. Skill practice: once a week, try the next rung of one ladder with low reps and long rests.
+  // 2. Skill practice (once a week: try the next rung of a ladder) or a Tatva drill.
   let skill = null
-  if (isJourney && !benchmark && !ctx.time && day === 0 && week >= 1 && phase.key !== 'deload') {
+  let drill = null
+  if (full && !isBench) {
     const tree = ['push', 'legs', 'core'][week % 3]
     const nextId = TREES[tree].steps[tiers[tree] + 1]
-    const id = nextId && resolve(nextId, ctx)
-    if (id === nextId) {
-      const e = EX[id]
+    if (day === 0 && week >= 1 && phase.key !== 'deload' && nextId && resolve(nextId, ctx) === nextId) {
+      const e = EX[nextId]
       const amt = e.type === 'time' ? Math.max(10, Math.round((e.base * 0.5) / 5) * 5) : Math.max(3, Math.round(e.base * 0.35))
-      for (let set = 1; set <= 3; set++) push(id, 'skill', { amount: amt, round: set, rounds: 3, rest: set < 3 ? 40 : 15 })
-      skill = { tree, ex: id }
+      const sets = target >= 45 ? 4 : 3
+      for (let set = 1; set <= sets; set++) push(nextId, 'skill', { amount: amt, round: set, rounds: sets, rest: set < sets ? 45 : 20, keep: true })
+      skill = { tree, ex: nextId }
+    }
+    if (!skill || target >= 45) {
+      const id = tpl.drills[index % tpl.drills.length]
+      // Level follows the athlete, rises in the second half of the journey, and steps down for short sessions.
+      const lv = clamp(lvlN + (week >= tpl.weeks / 2 ? 1 : 0) - (phase.key === 'deload' ? 1 : 0) - (skill ? 1 : 0), 1, target <= 30 ? 1 : 3)
+      const def = DRILLS[id].levels[lv - 1]
+      const before = steps.length
+      if (def.ladder) {
+        for (let n = 1; n <= def.top; n++) {
+          def.ladder.forEach((mv, k) => push(mv, 'drill', { amount: n * def.mult[k], round: n, rounds: def.top, keep: true }))
+          steps[steps.length - 1].rest = n < def.top ? def.rest : 30
+        }
+      } else {
+        for (let r = 1; r <= def.x; r++) for (const [mv, amt, rest] of def.steps) { const st = push(mv, 'drill', { amount: amt, round: r, rounds: def.x, keep: true }); if (st) st.rest = rest }
+        if (steps.length > before) steps[steps.length - 1].rest = 30
+      }
+      if (steps.length > before) drill = { id, level: lv }
     }
   }
 
-  // 3. Core workout. If exclusions leave too few moves, top up with ones that load nothing sore.
-  const kept = new Set(src.items.map((it) => resolve(slot(Array.isArray(it) ? it[0] : it, tiers).id, ctx)).filter(Boolean))
-  const items = [...src.items]
+  // 3. Main workout. If exclusions leave too few moves, top up with ones that load nothing sore.
+  const raw = peak ? peak.items : src.items
+  const kept = new Set(raw.map((it) => resolve(slot(Array.isArray(it) ? it[0] : it, tiers).id, ctx)).filter(Boolean))
+  const items = [...raw]
   for (const f of ['knee_drive', 'glute_bridge', 'calf_raise', 'march']) {
     if (kept.size >= 3) break
     if (!kept.has(f)) { items.push(f); kept.add(f) }
   }
-  let rounds = src.rounds || 1
-  if (ctx.time === 20 && !fixed && format === 'intervals') rounds = Math.max(2, rounds - 1)
+  const block = (list, n, blockNo, rest, timed) => {
+    for (let r = 1; r <= n; r++) {
+      let last = null
+      for (const it of list) last = push(it, 'core', { round: r, rounds: n, block: blockNo, timed }) || last
+      if (last && rest && r < n) last.rest = rest
+    }
+  }
+  const coolList = ctx.time ? tpl.cool.slice(-2) : full && target >= 45 ? ['overhead_stretch', 'downdog', ...tpl.cool] : tpl.cool
+  const coolEst = coolList.length * 38
+  const room = () => target * 60 - used() - coolEst - 45 // seconds still free before the cool-down
+  // A Peak is fixed, so on a day it would overrun, the Coach assigns a smaller split instead.
+  if (peak && isJourney && !isBench) {
+    const peakSec = (sp) => splitRounds(peak, sp) * peak.items.reduce((a, [id, n]) => a + n * EX[id].spr, 0)
+    while (split !== 'base' && peakSec(split) > room() - (target >= 45 ? 300 : 0)) split = SPLITS[SPLITS.indexOf(split) - 1]
+  }
+  let rounds = peak ? splitRounds(peak, split) : src.rounds || 1
   let cap = 0
+  const mainBudget = Math.min(target * 60 * (target >= 45 ? 0.36 : 0.45), room() - (full && target >= 45 ? 300 : 0))
   if (format === 'amrap') {
-    cap = (express ? 11 : ctx.time === 20 ? Math.min(src.cap || 12, 10) : src.cap || 12) * 60
-    for (const it of items) push(it, 'core', { loop: true, round: 1 })
+    cap = (express ? 11 : ctx.time === 20 ? Math.min(src.cap || 12, 10) : Math.round(clamp(mainBudget / 60, 8, 22))) * 60
+    for (const it of items) push(it, 'core', { loop: true, round: 1, block: 1 })
   } else if (format === 'emom') {
-    const minutes = ctx.time === 20 ? Math.min(src.cap, 10) : src.cap
+    const minutes = ctx.time === 20 ? Math.min(src.cap, 10) : Math.round(clamp(mainBudget / 60, 8, 20) / 2) * 2
     cap = minutes * 60
     const moves = [...new Set(items.map((it) => resolve(slot(it, tiers).id, ctx)).filter(Boolean))].slice(0, 2)
     for (let m = 0; m < minutes && moves.length; m++) {
       const e = EX[moves[m % moves.length]]
       // Aim for about 35 seconds of work inside each minute.
       const reps = e.type === 'time' ? null : clamp(Math.round(amount(e, factor) * 0.8), 3, Math.floor(40 / e.spr))
-      steps.push({ ex: e.id, type: 'emom', amount: 60, reps, hold: e.type === 'time' ? clamp(amount(e, factor), 15, 40) : null, section: 'core', rest: 0, round: m + 1, rounds: minutes, swapped: null })
+      steps.push({ ex: e.id, type: 'emom', amount: 60, reps, hold: e.type === 'time' ? clamp(amount(e, factor), 15, 40) : null, section: 'core', block: 1, rest: 0, round: m + 1, rounds: minutes, swapped: null })
     }
+  } else if (format === 'fortime') {
+    block(items, rounds, 1, 0, true)
   } else {
-    for (let r = 1; r <= rounds; r++) {
-      let last = null
-      for (const it of items) last = push(it, 'core', { round: r, rounds }) || last
-      if (last && format === 'intervals' && r < rounds) last.rest = restBetween
+    if (full) rounds = fitRounds(items, mainBudget, 2, 6)
+    else if (ctx.time === 20) rounds = fitRounds(items, room(), 2, 4)
+    block(items, rounds, 1, restBetween, false)
+  }
+
+  // 4. Accessory blocks: fill the rest of the session, preferring moves not used yet.
+  let accessory = 0
+  if (full && !isBench) {
+    const cands = tpl.pool.filter((x) => x.items && x !== src)
+    for (let b = 2; b <= 5; b++) {
+      const left = room() - (format === 'amrap' ? cap : 0)
+      const done = new Set(steps.filter((x) => x.section === 'core').map((x) => x.ex))
+      const pick = cands[(index + b - 1) % cands.length]
+      const fresh = pick.items.filter((it) => { const id = resolve(slot(it, tiers).id, ctx); return id && !done.has(id) })
+      let accItems = (fresh.length >= 2 ? fresh : pick.items.filter((it) => resolve(slot(it, tiers).id, ctx))).slice(0, 4)
+      const fit = (list) => (list.length >= 2 ? clamp(Math.floor(left / Math.max(30, secOf(list, factor) + restBetween)), 0, 4) : 0)
+      let n = fit(accItems)
+      // Not enough time for two rounds of four moves: use a two-move superset instead.
+      if (n < 2 && accItems.length > 2) { accItems = accItems.slice(0, 2); n = fit(accItems) }
+      if (n < 2) break
+      const last = steps[steps.length - 1]
+      if (last && last.section === 'core') last.rest = 60
+      block(accItems, n, b, restBetween, false)
+      accessory = b - 1
     }
   }
-  const coreSteps = steps.filter((s) => s.section === 'core')
-  if (coreSteps.length) coreSteps[coreSteps.length - 1].rest = format === 'amrap' ? 0 : 10
+  const coreSteps = steps.filter((x) => x.section === 'core')
+  if (coreSteps.length) { const last = coreSteps[coreSteps.length - 1]; if (!last.loop) last.rest = 15 }
 
-  // 4. Cool-down
-  const cool = ctx.time ? tpl.cool.slice(-2) : tpl.cool
-  for (const id of cool) { const st = push(id, 'cool'); if (st) st.rest = 5 }
+  // 5. Cool-down
+  for (const id of coolList) { const st = push(id, 'cool'); if (st) st.rest = 5 }
+  for (const id of ['overhead_stretch', 'side_bend', 'breathing']) {
+    const have = steps.filter((x) => x.section === 'cool')
+    if (have.length >= (ctx.time ? 2 : 3)) break
+    if (!have.some((x) => x.ex === id)) { const st = push(id, 'cool'); if (st) st.rest = 5 }
+  }
   if (steps.length) steps[steps.length - 1].rest = 0
 
   // Estimates
@@ -151,15 +245,15 @@ export function buildSession(tpl, index, profile, adapt = {}) {
     kcal += kc(work, EX[st.ex].met)
   }
   if (format === 'amrap') {
-    const loop = steps.filter((s) => s.loop)
+    const loop = steps.filter((x) => x.loop)
     seconds += cap
-    kcal += kc(cap * 0.85, loop.reduce((a, s) => a + EX[s.ex].met, 0) / Math.max(1, loop.length))
+    kcal += kc(cap * 0.85, loop.reduce((a, x) => a + EX[x.ex].met, 0) / Math.max(1, loop.length))
   }
   return {
-    title: benchmark ? benchmark.name : src.name, format, cap, rounds, steps, skill, phase: phase?.key || null,
-    benchmark: benchmark ? benchmark.id : null, peakId: benchmark ? benchmark.id : !isJourney ? tpl.id : null,
+    title: peak ? peak.name : src.name, format, cap, rounds, steps, skill, drill, accessory, target, phase: phase?.key || null,
+    benchmark: isBench ? peak.id : null, peakId: peak ? peak.id : null, split: peak ? split : null,
     forTime: format === 'fortime', week: week + 1, day: day + 1, trees: [...trees], seconds,
-    canShorten: !fixed, hasJumps: steps.some((s) => s.swapped && EX[s.swapped].jump) || steps.some((s) => EX[s.ex].jump),
+    canShorten: isJourney, hasJumps: steps.some((x) => EX[x.ex].jump || (x.swapped && EX[x.swapped].jump)),
     minutes: Math.max(1, Math.round(seconds / 60)), kcal: Math.round(kcal), kcalPerSec: kcal / Math.max(1, seconds),
   }
 }

@@ -40,17 +40,23 @@ FOUR WAYS TO TRAIN
 CLIMB THE SKILL LADDERS
 Push, legs and core each have six levels, from wall push-ups to decline push-ups, from assisted squats to pistol squats. Three clean sessions in a row move you up.
 
-PEAKS: BEAT YOUR OWN RECORD
-Eight fixed workouts against the clock, from Nilgiri to Kanchenjunga. The work never changes, so a faster time is real progress.
+PEAKS: OUR SIGNATURE WORKOUTS
+Fifteen workouts named after India's mountains, from Nilgiri to Kanchenjunga, done against the clock. The recipe never changes, so a faster time is real progress. Climb each one three ways: Base Camp, Ridge or Summit, each with its own best time.
+
+TATVA DRILLS
+Five short drills named after the five elements. Agni for explosive power, Vayu for speed, Prithvi for leg strength, Jal for mobility and Akash for core control. Your coach adds one to every session.
+
+FULL SESSIONS, YOUR LENGTH
+Choose 30, 45 or 60 minutes. Every session runs warm-up, drill, main workout, accessory strength and cool-down.
 
 ADAPT ANY SESSION TO YOUR DAY
 • Quiet mode: no jumping, for flats and late nights
 • Small space: stays within a yoga mat
-• Short on time: a 20 or 15 minute version
+• Short on time: cut any day to 20 or 15 minutes
 • Sore today: skip knees, lower back, shoulders or wrists
 
 GUIDED, STEP BY STEP
-• 50 exercises with animated demonstrations and clear form cues
+• 50 exercises with photo demonstrations and clear form cues
 • Big rep counters and timers you can read mid-workout
 • Voice coaching in Hindi or English
 
@@ -104,17 +110,23 @@ OjasFit आपका अपना बॉडीवेट कोच है। न 
 स्किल की सीढ़ियाँ चढ़िए
 पुश, पैर और कोर की छह-छह पायदान हैं: दीवार पुश-अप से डिक्लाइन पुश-अप तक, कुर्सी स्क्वैट से पिस्टल स्क्वैट तक। लगातार तीन साफ़ सेशन आपको ऊपर ले जाते हैं।
 
-चोटियाँ: अपना रिकॉर्ड तोड़िए
-नीलगिरि से कंचनजंगा तक, घड़ी के ख़िलाफ़ 8 तय कसरतें। कसरत कभी नहीं बदलती, इसलिए कम समय ही असली तरक़्क़ी है।
+चोटियाँ: हमारी ख़ास कसरतें
+भारत के पहाड़ों के नाम पर पंद्रह कसरतें, नीलगिरि से कंचनजंगा तक, घड़ी के ख़िलाफ़। कसरत कभी नहीं बदलती, इसलिए कम समय ही असली तरक़्क़ी है। हर चोटी तीन तरह से चढ़िए: बेस कैंप, रिज या शिखर, और हर एक का अपना सर्वश्रेष्ठ समय।
+
+तत्व ड्रिल
+पाँच तत्वों के नाम पर पाँच छोटी ड्रिल। अग्नि विस्फोटक ताक़त के लिए, वायु रफ़्तार के लिए, पृथ्वी पैरों की ताक़त के लिए, जल लचीलेपन के लिए और आकाश कोर पर क़ाबू के लिए। आपका कोच हर सेशन में एक जोड़ता है।
+
+पूरे सेशन, आपकी पसंद की लंबाई
+30, 45 या 60 मिनट चुनिए। हर सेशन में वार्म-अप, ड्रिल, मुख्य कसरत, एक्सेसरी ताक़त और कूल-डाउन होता है।
 
 हर सेशन को अपने दिन के हिसाब से बदलिए
 • शांत मोड: कोई कूद नहीं, फ़्लैट और देर रात के लिए
 • कम जगह: योगा मैट जितनी जगह में
-• समय कम: 20 या 15 मिनट का रूप
+• समय कम: किसी भी दिन को 20 या 15 मिनट का कर दें
 • आज दर्द है: घुटने, कमर, कंधे या कलाई को छोड़ दें
 
 क़दम-दर-क़दम मार्गदर्शन
-• 50 कसरतें, चलती तस्वीरों और साफ़ निर्देशों के साथ
+• 50 कसरतें, तस्वीरों और साफ़ निर्देशों के साथ
 • बड़े रेप काउंटर और टाइमर जो कसरत के बीच भी पढ़े जाएँ
 • हिन्दी या अंग्रेज़ी में आवाज़ वाला कोच
 

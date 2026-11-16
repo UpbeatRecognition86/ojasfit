@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Sparkles, Map as MapIcon, Dumbbell, BarChart3, User } from 'lucide-react'
 import { useStore, activeProfile, stats, dayStr } from './lib/store.jsx'
 import { useT } from './lib/i18n.js'
-import { JMAP, PMAP } from './data/journeys.js'
+import { JMAP, PMAP, pbKey } from './data/journeys.js'
 import { totalSessions, daysPerWeek } from './lib/plan.js'
 import Onboarding from './screens/Onboarding.jsx'
 import Session from './screens/Session.jsx'
@@ -50,11 +50,12 @@ export default function App() {
       p.pbs = p.pbs || {}
       // Any for-time session on a Peak (a benchmark inside a journey, or a Peak on its own) can set a record.
       const pid = session.forTime ? session.peakId : null
+      const key = pid ? pbKey(pid, session.split) : null
       const time = pid ? Math.max(1, coreSeconds) : null
-      const pb = !!pid && (!p.pbs[pid] || time < p.pbs[pid])
-      if (pb) p.pbs[pid] = time
+      const pb = !!pid && (!p.pbs[key] || time < p.pbs[key])
+      if (pb) p.pbs[key] = time
       const points = minutes * 10 + (first ? 20 + Math.min(st.streak, 7) * 5 : 0) + (pb ? 50 : 0)
-      const entry = { id: hid, date: dayStr(), title: session.title, jid: isJourney ? tpl.id : null, pid, format: session.format, minutes, seconds, time, kcal, points, pb, reps, trees: session.trees }
+      const entry = { id: hid, date: dayStr(), title: session.title, jid: isJourney ? tpl.id : null, pid, split: pid ? session.split : null, format: session.format, minutes, seconds, time, kcal, points, pb, reps, trees: session.trees }
       if (session.format === 'amrap') entry.loops = loops
       p.history.push(entry)
       p.points += points
@@ -82,7 +83,7 @@ export default function App() {
     case 'session': {
       const tpl = route.jid ? JMAP[route.jid] : PMAP[route.pid]
       body = tpl
-        ? <Session tpl={tpl} index={route.idx || 0} onBack={nav.back} onFinish={finish(tpl, route.idx || 0, !!route.jid)} />
+        ? <Session tpl={tpl} index={route.idx || 0} split={route.split} onBack={nav.back} onFinish={finish(tpl, route.idx || 0, !!route.jid)} />
         : <Home nav={nav} />
       break
     }

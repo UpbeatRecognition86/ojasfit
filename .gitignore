@@ -2,3 +2,9 @@ node_modules
 dist
 .DS_Store
 *.local
+
+# Source images for scripts/import-demos.mjs (large; only the converted public/demo files are committed)
+demo-src/*.png
+demo-src/*.jpg
+demo-src/*.jpeg
+demo-src/*.webp

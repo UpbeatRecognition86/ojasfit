@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ArrowLeft, Check } from 'lucide-react'
 import { useStore, newProfile, dayStr, FREE_LAUNCH } from '../lib/store.jsx'
 import { useT, LANGS } from '../lib/i18n.js'
-import { JOURNEYS, JMAP, recommend } from '../data/journeys.js'
+import { JOURNEYS, JMAP, recommend, LENGTHS, defaultLength } from '../data/journeys.js'
 import { APP } from '../config.js'
 import Glyph from '../components/Glyph.jsx'
 
@@ -33,7 +33,7 @@ export default function Onboarding({ add = false, onDone }) {
   const { t } = useT()
   const steps = add ? ['who', 'goal', 'level', 'health', 'body', 'plan'] : ['lang', 'who', 'goal', 'level', 'health', 'body', 'plan']
   const [i, setI] = useState(0)
-  const [d, setD] = useState({ name: '', goal: 'active', level: 'beginner', days: 3, limits: [], quiet: false, kg: '', cm: '' })
+  const [d, setD] = useState({ name: '', goal: 'active', level: 'beginner', days: 3, limits: [], quiet: false, length: null, kg: '', cm: '' })
   const [jid, setJid] = useState(null)
   const set = (patch) => setD((x) => ({ ...x, ...patch }))
   const step = steps[i]
@@ -45,7 +45,7 @@ export default function Onboarding({ add = false, onDone }) {
   const next = () => {
     if (i < steps.length - 1) return setI(i + 1)
     const p = newProfile({
-      name: d.name.trim(), goal: d.goal, level: d.level, days: d.days, limits: d.limits, quiet: d.quiet,
+      name: d.name.trim(), goal: d.goal, level: d.level, days: d.days, limits: d.limits, quiet: d.quiet, length: d.length || defaultLength(d.level),
       kg: Number(d.kg) || null, cm: Number(d.cm) || null, journeyId: chosen,
     })
     if (p.kg) p.weights.push({ date: dayStr(), kg: p.kg })
@@ -115,6 +115,10 @@ export default function Onboarding({ add = false, onDone }) {
           <div><h2 className="h3">{t('daysTitle')}</h2><p className="muted small">{t('daysSub')}</p></div>
           <div className="pills">
             {[2, 3, 4, 5, 6].map((n) => <button key={n} className={`pill ${d.days === n ? 'on' : ''}`} onClick={() => set({ days: n })}>{n}</button>)}
+          </div>
+          <div><h2 className="h3">{t('lengthTitle')}</h2><p className="muted small">{t('lengthSub')}</p></div>
+          <div className="seg">
+            {LENGTHS.map((n) => <button key={n} className={(d.length || defaultLength(d.level)) === n ? 'on' : ''} onClick={() => set({ length: n })}>{t('lengthN', { n })}{defaultLength(d.level) === n ? ` · ${t('suggested')}` : ''}</button>)}
           </div>
         </>
       )}
