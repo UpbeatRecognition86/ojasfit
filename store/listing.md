@@ -64,7 +64,7 @@ SHARE YOUR RESULT
 Finish a session and share a result card to WhatsApp or Instagram in one tap.
 
 FREE, PRIVATE AND BACKED UP
-OjasFit is free. Sign in with Google, your mobile number or email, and your progress is saved to your account, safe even if you change phones. No ads and no tracking. Several people can keep separate profiles on one account.
+OjasFit is free. Sign in with your email, and your progress is saved to your account, safe even if you change phones. No ads and no tracking. Several people can keep separate profiles on one account.
 
 OjasFit gives general fitness guidance, not medical advice. If you have a health condition, are pregnant, or have not exercised for a long time, check with your doctor before starting.
 ```
@@ -134,7 +134,7 @@ OjasFit आपका अपना बॉडीवेट कोच है। न 
 सेशन पूरा करके एक टैप में नतीजे का कार्ड व्हाट्सऐप या इंस्टाग्राम पर भेजिए।
 
 मुफ़्त, निजी और सुरक्षित
-OjasFit मुफ़्त है। Google, मोबाइल नंबर या ईमेल से साइन इन कीजिए, और आपकी प्रगति आपके अकाउंट में सेव रहती है, फ़ोन बदलने पर भी। न विज्ञापन, न ट्रैकिंग। एक अकाउंट में कई लोग अपनी अलग प्रोफ़ाइल रख सकते हैं।
+OjasFit मुफ़्त है। ईमेल से साइन इन कीजिए, और आपकी प्रगति आपके अकाउंट में सेव रहती है, फ़ोन बदलने पर भी। न विज्ञापन, न ट्रैकिंग। एक अकाउंट में कई लोग अपनी अलग प्रोफ़ाइल रख सकते हैं।
 
 OjasFit सामान्य फ़िटनेस जानकारी देता है, डॉक्टरी सलाह नहीं। कोई बीमारी हो, आप गर्भवती हों, या लंबे समय से कसरत नहीं की हो, तो शुरू करने से पहले डॉक्टर से सलाह लें।
 ```

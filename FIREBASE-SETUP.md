@@ -1,6 +1,6 @@
 # Turning on accounts (Firebase)
 
-OjasFit's sign-in (Google, mobile number with SMS code, email and password) and cloud backup run on
+OjasFit's sign-in (email and password for now) and cloud backup run on
 Google Firebase. Until the four values in `src/config.js → FIREBASE` are filled in, the app runs
 without accounts, exactly as before. This takes about 15 minutes, all in the browser.
 
@@ -10,22 +10,17 @@ without accounts, exactly as before. This takes about 15 minutes, all in the bro
 2. **Create a project** → name it `ojasfit` → turn **off** Google Analytics (the app does not use it,
    and the privacy policy says so) → Create.
 
-## 2. Turn on the sign-in methods
-**Build → Authentication → Get started → Sign-in method**, then enable:
-- **Google**: set the support email to ojasfitindia@gmail.com → Save.
-- **Email/Password**: turn on the first switch only (not "Email link") → Save.
-- **Phone** → Save.
+## 2. Turn on email sign-in
+**Build → Authentication → Get started → Sign-in method → Email/Password** → turn on the first
+switch only (not "Email link") → Save.
 
 Then, still in Authentication:
-- **Settings → Authorized domains → Add domain**: `ojasfit.co.in` and `www.ojasfit.co.in`.
-- **Settings → SMS region policy → Allow** only **India**. This stops people abusing your SMS quota
-  with foreign numbers.
-- **Templates**: set the sender name to OjasFit for the password-reset email.
+- **Settings → Authorized domains → Add domain**: `ojasfit.co.in`, then add `www.ojasfit.co.in`.
+- **Templates → Password reset → edit (pencil)**: set the sender name to `OjasFit` → Save.
 
-About SMS cost: Firebase may ask you to move to the **Blaze** (pay-as-you-go) plan before it sends
-real SMS codes, and SMS are charged per message. If it does, also set a budget alert in
-Google Cloud Billing (for example ₹500) so a surprise bill cannot happen. Google and email
-sign-in stay free.
+Google and mobile-number sign-in can be added later: switch the provider on here and add
+`'google'` or `'phone'` to `SIGN_IN` in `src/config.js`. Mobile-number sign-in sends SMS, which
+Firebase charges for.
 
 ## 3. Create the database
 **Build → Firestore Database → Create database**:

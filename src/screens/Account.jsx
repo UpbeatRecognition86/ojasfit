@@ -4,7 +4,7 @@ import { useStore } from '../lib/store.jsx'
 import { useT, LANGS } from '../lib/i18n.js'
 import { useAccount } from '../lib/account.jsx'
 import * as cloud from '../lib/cloud.js'
-import { APP } from '../config.js'
+import { APP, SIGN_IN } from '../config.js'
 
 const GoogleG = () => (
   <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
@@ -103,9 +103,9 @@ export function SignIn() {
           </div>
           <div className="spacer" />
           <div className="stack">
-            <button className="btn plain-case google" disabled={busy} onClick={() => run(cloud.signInGoogle)}><GoogleG /> {t('withGoogle')}</button>
-            <button className="btn ghost plain-case" disabled={busy} onClick={() => go('phone')}><Smartphone size={20} /> {t('withPhone')}</button>
-            <button className="btn ghost plain-case" disabled={busy} onClick={() => go('email')}><Mail size={20} /> {t('withEmail')}</button>
+            {SIGN_IN.includes('google') && <button className="btn plain-case google" disabled={busy} onClick={() => run(cloud.signInGoogle)}><GoogleG /> {t('withGoogle')}</button>}
+            {SIGN_IN.includes('phone') && <button className="btn ghost plain-case" disabled={busy} onClick={() => go('phone')}><Smartphone size={20} /> {t('withPhone')}</button>}
+            {SIGN_IN.includes('email') && <button className={`btn plain-case ${SIGN_IN[0] === 'email' ? '' : 'ghost'}`} disabled={busy} onClick={() => go('email')}><Mail size={20} /> {t('withEmail')}</button>}
           </div>
         </>
       )}

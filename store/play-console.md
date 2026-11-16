@@ -1,7 +1,7 @@
 # Play Console answers
 
 Answers for the forms under **Policy → App content** and **Store presence**, for a free app
-with sign-in (Google, mobile number or email) and cloud backup on Firebase. No ads, no analytics,
+with email sign-in (plus a mobile number collected at sign-up) and cloud backup on Firebase. No ads, no analytics,
 no purchases. If the app later adds analytics or purchases, several answers change — update them
 before that release.
 
@@ -70,7 +70,7 @@ Create that account in the app first and finish onboarding with it, and never de
 | Section | Data type | Required or optional | Purposes |
 |---|---|---|---|
 | Personal info | Name | Required | App functionality, Account management |
-| Personal info | Email address | Optional (required for email and Google sign-in) | Account management, Developer communications |
+| Personal info | Email address | Required | Account management, Developer communications |
 | Personal info | Phone number | Required | Account management, Developer communications |
 | Personal info | User IDs | Required | Account management |
 | Health and fitness | Fitness info | Required | App functionality |

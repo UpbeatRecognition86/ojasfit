@@ -25,3 +25,7 @@ export const FIREBASE = {
   projectId: '',
   appId: '',
 }
+
+// Sign-in methods shown on the welcome screen, in order. 'phone' needs SMS billing in Firebase;
+// 'google' needs the Google provider switched on (both are free to add later).
+export const SIGN_IN = ['email']
