@@ -56,7 +56,7 @@ ADAPT ANY SESSION TO YOUR DAY
 • Sore today: skip knees, lower back, shoulders or wrists
 
 GUIDED, STEP BY STEP
-• 50 exercises with animated demonstrations and clear form cues
+• 50 exercises with photo demonstrations and clear form cues
 • Big rep counters and timers you can read mid-workout
 • Voice coaching in Hindi or English
 
@@ -126,7 +126,7 @@ OjasFit आपका अपना बॉडीवेट कोच है। न 
 • आज दर्द है: घुटने, कमर, कंधे या कलाई को छोड़ दें
 
 क़दम-दर-क़दम मार्गदर्शन
-• 50 कसरतें, चलती तस्वीरों और साफ़ निर्देशों के साथ
+• 50 कसरतें, तस्वीरों और साफ़ निर्देशों के साथ
 • बड़े रेप काउंटर और टाइमर जो कसरत के बीच भी पढ़े जाएँ
 • हिन्दी या अंग्रेज़ी में आवाज़ वाला कोच
 

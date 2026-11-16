@@ -1,4 +1,5 @@
-Upload the generated exercise images here, named exactly as in `DEMO-PROMPTS.md`
-(for example `squat-a.png` and `squat-b.png`).
+Put generated exercise images here, named as in `DEMO-PROMPTS.md` (for example `squat-a.png`
+and `squat-b.png`), then run `node scripts/import-demos.mjs`. It converts them into
+`public/demo/`, which is what the app serves.
 
-Then `node scripts/import-demos.mjs` converts them for the app.
+The originals are large and are not committed (see `.gitignore`); keep your own copy.

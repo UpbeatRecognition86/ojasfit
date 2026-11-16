@@ -1,5 +1,5 @@
 // Converts the images in demo-src/ into what the app serves:
-//   public/demo/<id>-a.webp (and -b.webp), 720px square, plus public/demo/manifest.json.
+//   public/demo/<id>-a.webp (and -b.webp), 960px square, plus public/demo/manifest.json.
 // Reports anything missing or misnamed. Usage: node scripts/import-demos.mjs
 import { readdirSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
@@ -19,7 +19,7 @@ for (const f of files) {
   const dest = `${out}${id}-${frame.toLowerCase()}.webp`
   // Centre-crop to a square, resize, and encode as WebP.
   execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', src + f,
-    '-vf', "crop='min(iw,ih)':'min(iw,ih)',scale=720:720:flags=lanczos", '-c:v', 'libwebp', '-quality', '82', dest])
+    '-vf', "crop='min(iw,ih)':'min(iw,ih)',scale=960:960:flags=lanczos", '-c:v', 'libwebp', '-quality', '80', dest])
   manifest[id] = Math.max(manifest[id] || 0, frame.toLowerCase() === 'b' ? 2 : 1)
 }
 // A "-b" without its "-a" cannot be shown.
