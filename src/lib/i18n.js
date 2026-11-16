@@ -1,4 +1,5 @@
 import { useStore } from './store.jsx'
+import { ACCOUNTS_ON } from './cloud.js'
 
 // UI strings: key -> [English, Hindi]. Add a language by adding a column and a code in LANGS.
 export const LANGS = [
@@ -414,6 +415,70 @@ const S = {
   lengthN: ['{n} min', '{n} मिनट'],
   suggested: ['Suggested', 'सुझाव'],
 }
+
+// Accounts and sign-in
+Object.assign(S, {
+  welcomeTo: ['Welcome to {app}', '{app} में आपका स्वागत है'],
+  signInSub: ['Create your account or sign in. Your progress is saved to it, so it is safe even if you change phones.', 'अकाउंट बनाइए या साइन इन कीजिए। आपकी प्रगति उसमें सेव रहती है, फ़ोन बदलने पर भी।'],
+  withGoogle: ['Continue with Google', 'Google से आगे बढ़ें'],
+  withPhone: ['Continue with mobile number', 'मोबाइल नंबर से आगे बढ़ें'],
+  withEmail: ['Continue with email', 'ईमेल से आगे बढ़ें'],
+  phoneTitle: ['Your mobile number', 'आपका मोबाइल नंबर'],
+  phoneSub: ['We will send a 6-digit code by SMS.', 'हम SMS से 6 अंकों का कोड भेजेंगे।'],
+  mobile: ['Mobile number', 'मोबाइल नंबर'],
+  sendCode: ['Send code', 'कोड भेजें'],
+  sending: ['Sending…', 'भेज रहे हैं…'],
+  codeTitle: ['Enter the code', 'कोड डालिए'],
+  codeSub: ['Sent by SMS to {n}', '{n} पर SMS से भेजा गया'],
+  verify: ['Verify', 'पुष्टि करें'],
+  resend: ['Change number or resend code', 'नंबर बदलें या कोड दोबारा भेजें'],
+  resendIn: ['Resend code in {n}s', '{n} सेकंड में दोबारा भेज सकते हैं'],
+  email: ['Email', 'ईमेल'],
+  password: ['Password', 'पासवर्ड'],
+  pwRule: ['At least 6 characters', 'कम से कम 6 अक्षर'],
+  emailCreate: ['Create your account', 'अपना अकाउंट बनाइए'],
+  emailSignIn: ['Sign in with email', 'ईमेल से साइन इन'],
+  createAccount: ['Create account', 'अकाउंट बनाएँ'],
+  signIn: ['Sign in', 'साइन इन'],
+  haveAccount: ['Already have an account? Sign in', 'पहले से अकाउंट है? साइन इन करें'],
+  newHere: ['New here? Create an account', 'नए हैं? अकाउंट बनाइए'],
+  forgotPw: ['Forgot password?', 'पासवर्ड भूल गए?'],
+  resetSent: ['We sent a link to {e} to set a new password.', '{e} पर नया पासवर्ड बनाने का लिंक भेजा है।'],
+  agreePrivacy: ['By continuing you agree to our', 'आगे बढ़कर आप हमारी इस नीति से सहमत हैं:'],
+  tryAgain: ['Try again', 'फिर कोशिश करें'],
+  loadingProgress: ['Loading your progress…', 'आपकी प्रगति ला रहे हैं…'],
+  detailsTitle: ['Your details', 'आपकी जानकारी'],
+  detailsSub: ['So your coach knows you, and so you can recover your account.', 'ताकि कोच आपको जाने, और अकाउंट वापस पाने में मदद मिले।'],
+  fullName: ['Full name', 'पूरा नाम'],
+  verified: ['Verified', 'पुष्टि हो चुकी'],
+  updatesTitle: ['Tips and updates', 'टिप्स और अपडेट'],
+  updatesSub: ['Occasional workout tips and news by email or WhatsApp. Turn off any time.', 'कभी-कभार ईमेल या व्हाट्सऐप पर कसरत की टिप्स और ख़बरें। कभी भी बंद करें।'],
+  account: ['Account', 'अकाउंट'],
+  syncNote: ['Your progress is backed up to your account automatically.', 'आपकी प्रगति अपने-आप आपके अकाउंट में सेव होती है।'],
+  signOut: ['Sign out', 'साइन आउट'],
+  signOutAsk: ['Sign out? Your progress stays in your account and comes back when you sign in.', 'साइन आउट करें? आपकी प्रगति अकाउंट में रहेगी और साइन इन करने पर वापस आ जाएगी।'],
+  deleteAccount: ['Delete account', 'अकाउंट मिटाएँ'],
+  deleteAsk: ['Delete your account and all your progress for good? This cannot be undone.', 'अपना अकाउंट और सारी प्रगति हमेशा के लिए मिटाएँ? यह वापस नहीं होगा।'],
+  deleteRelogin: ['Your progress has been deleted. To remove your sign-in as well, sign in again and tap Delete account once more.', 'आपकी प्रगति मिटा दी गई है। साइन-इन भी हटाने के लिए दोबारा साइन इन करें और फिर से "अकाउंट मिटाएँ" दबाएँ।'],
+  authErrNetwork: ['No internet connection. Check it and try again.', 'इंटरनेट नहीं है। जाँचकर फिर कोशिश करें।'],
+  authErrPhone: ['That mobile number does not look right.', 'यह मोबाइल नंबर सही नहीं लग रहा।'],
+  authErrCode: ['That code is wrong or has expired. Try again.', 'कोड ग़लत है या उसकी अवधि ख़त्म हो गई। फिर कोशिश करें।'],
+  authErrMany: ['Too many tries. Wait a few minutes and try again.', 'बहुत बार कोशिश हुई। कुछ मिनट रुककर फिर कोशिश करें।'],
+  authErrEmailUsed: ['That email already has an account. Sign in instead.', 'इस ईमेल का अकाउंट पहले से है। साइन इन करें।'],
+  authErrEmail: ['Enter a valid email address.', 'सही ईमेल पता डालिए।'],
+  authErrWeak: ['Use a password of at least 6 characters.', 'कम से कम 6 अक्षर का पासवर्ड रखें।'],
+  authErrLogin: ['Email or password is wrong.', 'ईमेल या पासवर्ड ग़लत है।'],
+  authErrOther: ['This email is linked to another sign-in method. Use that one.', 'यह ईमेल किसी दूसरे तरीक़े से जुड़ा है। वही इस्तेमाल करें।'],
+  authErrGeneric: ['Something went wrong. Please try again.', 'कुछ गड़बड़ हुई। फिर कोशिश करें।'],
+})
+if (ACCOUNTS_ON) Object.assign(S, {
+  bodySub: ['Used only to estimate calories. Saved privately in your account.', 'सिर्फ़ कैलोरी के अंदाज़े के लिए। आपके अकाउंट में निजी रूप से सेव।'],
+  dataNote: ['Your progress is saved in your account. You can also download a copy.', 'आपकी प्रगति आपके अकाउंट में सेव है। चाहें तो एक कॉपी भी डाउनलोड कर सकते हैं।'],
+  resetAsk: ['Erase all profiles and history? This also clears them from your account.', 'सारी प्रोफ़ाइल और रिकॉर्ड मिटाएँ? ये आपके अकाउंट से भी मिट जाएँगे।'],
+})
+
+// For code outside React components.
+export const tr = (lang, key) => (S[key] ? S[key][lang === 'hi' ? 1 : 0] : key)
 
 export const TIPS = [
   ['Walk for 10 minutes after dinner. It helps digestion and blood sugar.', 'रात के खाने के बाद 10 मिनट टहलें। इससे पाचन और शुगर दोनों में मदद मिलती है।'],

@@ -28,12 +28,14 @@ export function JourneyOption({ j, on, onClick, badge }) {
   )
 }
 
-export default function Onboarding({ add = false, onDone }) {
+export default function Onboarding({ add = false, name = '', onDone }) {
   const { state, update } = useStore()
   const { t } = useT()
-  const steps = add ? ['who', 'goal', 'level', 'health', 'body', 'plan'] : ['lang', 'who', 'goal', 'level', 'health', 'body', 'plan']
+  // A signed-in account has already chosen a language and given a name.
+  const first = name ? [] : ['lang', 'who']
+  const steps = add ? ['who', 'goal', 'level', 'health', 'body', 'plan'] : [...first, 'goal', 'level', 'health', 'body', 'plan']
   const [i, setI] = useState(0)
-  const [d, setD] = useState({ name: '', goal: 'active', level: 'beginner', days: 3, limits: [], quiet: false, length: null, kg: '', cm: '' })
+  const [d, setD] = useState({ name: add ? '' : name.split(' ')[0], goal: 'active', level: 'beginner', days: 3, limits: [], quiet: false, length: null, kg: '', cm: '' })
   const [jid, setJid] = useState(null)
   const set = (patch) => setD((x) => ({ ...x, ...patch }))
   const step = steps[i]

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { ArrowLeft, Check, Crown, Plus, Trash2, Share2, Download, Upload, Pencil } from 'lucide-react'
+import { ArrowLeft, Check, Crown, Plus, Trash2, Share2, Download, Upload, Pencil, LogOut } from 'lucide-react'
+import { useAccount } from '../lib/account.jsx'
 import { useStore, activeProfile, stats, isPlus, maxProfiles, dayStr, addDays, weekStart, badges, rank, FREE_LAUNCH } from '../lib/store.jsx'
 import { useT, LANGS } from '../lib/i18n.js'
 import { JMAP, PMAP } from '../data/journeys.js'
@@ -187,6 +188,40 @@ function EditSheet({ onClose }) {
   )
 }
 
+function AccountCard() {
+  const { t } = useT()
+  const acct = useAccount()
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  if (acct.status !== 'in') return null
+  const a = acct.account || {}
+  const out = async () => {
+    if (!confirm(t('signOutAsk'))) return
+    setBusy(true)
+    try { await acct.signOut() } catch { setErr(t('authErrNetwork')); setBusy(false) }
+  }
+  const del = async () => {
+    if (!confirm(t('deleteAsk'))) return
+    setBusy(true); setErr('')
+    try { await acct.deleteAccount() } catch { setErr(t('authErrNetwork')); setBusy(false) }
+  }
+  return (
+    <div className="card stack">
+      <h2 className="h3">{t('account')}</h2>
+      <div className="list">
+        <div className="li"><span className="grow"><b>{a.name}</b>
+          <span className="muted small" style={{ display: 'block' }}>{[a.phone && a.phone.replace(/^\+91(\d{5})(\d{5})$/, '+91 $1 $2'), a.email].filter(Boolean).join(' · ')}</span></span>
+        </div>
+        <Toggle label={t('updatesTitle')} on={!!a.updates} onChange={(v) => acct.setAccount({ ...a, updates: v }).catch(() => setErr(t('authErrNetwork')))} />
+      </div>
+      <p className="muted small">{t('syncNote')}</p>
+      {err && <p className="note warn" role="alert">{err}</p>}
+      <button className="btn ghost" disabled={busy} onClick={out}><LogOut size={18} /> {t('signOut')}</button>
+      <button className="link small" style={{ alignSelf: 'center', padding: 10, color: 'var(--danger)' }} disabled={busy} onClick={del}>{t('deleteAccount')}</button>
+    </div>
+  )
+}
+
 export function Profile({ nav }) {
   const { state, update, replace } = useStore()
   const { t, L } = useT()
@@ -221,7 +256,7 @@ export function Profile({ nav }) {
     try {
       const data = JSON.parse(await f.text())
       if (!Array.isArray(data.profiles) || !data.profiles.length || !data.profiles.every((x) => x.id && Array.isArray(x.history))) throw new Error('bad')
-      replace(data)
+      replace({ ...data, owner: state.owner })
       setMsg('')
     } catch { setMsg(t('importBad')) }
   }
@@ -229,6 +264,7 @@ export function Profile({ nav }) {
   return (
     <div className="screen">
       <h1>{t('tab_profile')}</h1>
+      <AccountCard />
 
       <div className="card">
         <h2 className="h3">{t('family')}</h2>
@@ -283,7 +319,7 @@ export function Profile({ nav }) {
         <button className="btn ghost" onClick={() => file.current.click()}><Upload size={18} /> {t('import')}</button>
         <input ref={file} type="file" accept="application/json,.json" hidden onChange={importData} />
         {msg && <p className="note warn">{msg}</p>}
-        <button className="link small" style={{ alignSelf: 'center', padding: 10 }} onClick={() => { if (confirm(t('resetAsk'))) replace({}) }}>{t('reset')}</button>
+        <button className="link small" style={{ alignSelf: 'center', padding: 10 }} onClick={() => { if (confirm(t('resetAsk'))) replace({ lang: state.lang, owner: state.owner }) }}>{t('reset')}</button>
       </div>
 
       <p className="muted small center">{t('disclaimer')}</p>

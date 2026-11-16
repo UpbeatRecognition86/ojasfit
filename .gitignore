@@ -8,3 +8,5 @@ demo-src/*.png
 demo-src/*.jpg
 demo-src/*.jpeg
 demo-src/*.webp
+firebase-debug.log
+firestore-debug.log

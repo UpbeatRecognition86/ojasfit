@@ -1,8 +1,9 @@
 # Play Console answers
 
-Answers for the forms under **Policy → App content** and **Store presence**, for version 1
-(free, no accounts, all data on the device). If the app later adds accounts, online backup,
-analytics or purchases, several answers change — update them before that release.
+Answers for the forms under **Policy → App content** and **Store presence**, for a free app
+with sign-in (Google, mobile number or email) and cloud backup on Firebase. No ads, no analytics,
+no purchases. If the app later adds analytics or purchases, several answers change — update them
+before that release.
 
 ## Files to upload (store presence → main store listing)
 
@@ -34,7 +35,17 @@ terminal, then `node scripts/store-shots.cjs`.
 
 **Ads:** No, the app does not contain ads.
 
-**App access:** All functionality is available without special access (no login).
+**App access:** *All or some functionality is restricted* (sign-in is required). Add login
+instructions so Google's reviewers can get in:
+- Name: `Review account`
+- Username: an email account you create for this in the app (for example `review@ojasfit.co.in`
+  or a spare Gmail), Password: its password
+- Notes: "Open the app, tap Continue with email, then Already have an account? Sign in."
+Create that account in the app first and finish onboarding with it, and never delete it.
+
+**Account deletion** (Policy → App content → Data deletion):
+- Users can delete their account in the app: *Profile → Delete account*
+- Web link for deletion requests: https://ojasfit.co.in/delete-account.html
 
 **Content rating (IARC questionnaire):**
 - Category: *All other app types*
@@ -51,10 +62,22 @@ terminal, then `node scripts/store-shots.cjs`.
 - Could the app appeal to children unintentionally: **No**
 
 **Data safety:**
-- Does the app collect or share any required user data types? **No.**
-  Google counts data as "collected" only when it leaves the device. OjasFit keeps everything in
-  the phone's storage and has no server, so nothing is collected or shared.
-- The form then skips the encryption and deletion questions.
+- Does the app collect or share any required user data types? **Yes, collected. Not shared.**
+- Is all data encrypted in transit? **Yes** (HTTPS to Firebase).
+- Can users request that data is deleted? **Yes** (in the app, and the web link above).
+- Data types to tick, all *Collected*, *not shared*, *not processed ephemerally*:
+
+| Section | Data type | Required or optional | Purposes |
+|---|---|---|---|
+| Personal info | Name | Required | App functionality, Account management |
+| Personal info | Email address | Optional (required for email and Google sign-in) | Account management, Developer communications |
+| Personal info | Phone number | Required | Account management, Developer communications |
+| Personal info | User IDs | Required | Account management |
+| Health and fitness | Fitness info | Required | App functionality |
+| Health and fitness | Health info (physical limitations, weight) | Optional | App functionality |
+
+  Firebase handles sign-in and storage on our behalf, so Google counts it as a service provider,
+  not as sharing. Do not tick Analytics, Advertising or Fraud prevention: the app has none of them.
 
 **Health apps declaration:**
 - Features: **Activity and fitness** only
