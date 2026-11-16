@@ -5,6 +5,8 @@ import { useT } from './lib/i18n.js'
 import { JMAP, PMAP, pbKey } from './data/journeys.js'
 import { totalSessions, daysPerWeek } from './lib/plan.js'
 import Onboarding from './screens/Onboarding.jsx'
+import { SignIn, Details, Splash } from './screens/Account.jsx'
+import { useAccount } from './lib/account.jsx'
 import Session from './screens/Session.jsx'
 import { Home, Journeys, JourneyDetail, Explore, Calibrate, Recap } from './screens/Main.jsx'
 import { Progress, Profile, Paywall } from './screens/Me.jsx'
@@ -18,6 +20,7 @@ export default function App() {
   const [route, setRoute] = useState({ name: 'home' })
   const [onboarded, setOnboarded] = useState(() => state.profiles.length > 0)
   const profile = activeProfile(state)
+  const acct = useAccount()
 
   // Browser history drives navigation so the Android back button works.
   useEffect(() => {
@@ -31,13 +34,20 @@ export default function App() {
     document.documentElement.lang = lang
     document.documentElement.classList.toggle('big', !!state.settings.bigText)
   }, [lang, state.settings.bigText])
-  useEffect(() => { if (!profile) setOnboarded(false) }, [profile])
+  useEffect(() => { setOnboarded(!!profile) }, [profile])
+  useEffect(() => { if (acct.status !== 'in') { history.replaceState({ name: 'home' }, ''); setRoute({ name: 'home' }) } }, [acct.status])
 
   const go = useCallback((name, params = {}) => { const r = { name, ...params }; history.pushState(r, ''); setRoute(r) }, [])
   const swap = useCallback((name, params = {}) => { const r = { name, ...params }; history.replaceState(r, ''); setRoute(r) }, [])
   const nav = { go, swap, back: () => history.back(), tab: (name) => (isTab(route.name) ? swap(name) : go(name)) }
 
-  if (!onboarded || !profile) return <div className="app"><Onboarding onDone={() => { setOnboarded(true); swap('home') }} /></div>
+  // With accounts on, nobody trains without signing in; the first sign-in also asks for contact details.
+  if (acct.status === 'loading') return <div className="app"><Splash /></div>
+  if (acct.status === 'out') return <div className="app"><SignIn /></div>
+  if (acct.status === 'syncing') return <div className="app"><Splash text={t('loadingProgress')} /></div>
+  if (acct.status === 'offline') return <div className="app"><Splash text={t('authErrNetwork')} onRetry={acct.retry} /></div>
+  if (acct.status === 'in' && !acct.account?.created) return <div className="app"><Details /></div>
+  if (!onboarded || !profile) return <div className="app"><Onboarding name={acct.account?.name} onDone={() => { setOnboarded(true); swap('home') }} /></div>
 
   const finish = (tpl, index, isJourney) => ({ seconds, coreSeconds, session, reps, loops }) => {
     const minutes = Math.max(1, Math.round(seconds / 60))

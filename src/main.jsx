@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import { StoreProvider } from './lib/store.jsx'
+import { AccountProvider } from './lib/account.jsx'
 import '@fontsource-variable/anek-devanagari/wght.css'
 import './styles.css'
 import { loadVoicePack, loadVideoPack, loadDemoPack } from './lib/media.js'
@@ -13,7 +14,9 @@ loadDemoPack()
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <StoreProvider>
-      <App />
+      <AccountProvider>
+        <App />
+      </AccountProvider>
     </StoreProvider>
   </StrictMode>
 )

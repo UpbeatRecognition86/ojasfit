@@ -275,3 +275,8 @@ label.field { display: flex; flex-direction: column; gap: 6px; font-weight: 650;
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* Sign-in */
+.btn.google { background: #fff; color: #1f1f1f; }
+.input.otp { font-size: 1.6rem; letter-spacing: 0.5em; text-align: center; font-variant-numeric: tabular-nums; }
+.input.row input { background: none; border: 0; outline: none; color: inherit; font: inherit; min-height: 30px; }
