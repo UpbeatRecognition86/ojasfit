@@ -4,7 +4,7 @@ import { useStore, activeProfile, dayStr } from '../lib/store.jsx'
 import { useT } from '../lib/i18n.js'
 import { EX } from '../data/exercises.js'
 import { buildSession } from '../lib/plan.js'
-import { beep, sayClips, stopSpeaking, keepAwake, buzz, hasVideo } from '../lib/media.js'
+import { beep, sayClips, stopSpeaking, keepAwake, buzz, hasVideo, demoCount } from '../lib/media.js'
 import Figure from '../components/Figure.jsx'
 import Sheet from '../components/Sheet.jsx'
 
@@ -22,7 +22,25 @@ export function Amount({ step }) {
 // The demonstration: a looping video when one exists for the move, otherwise the drawn figure.
 export function Demo({ ex, size, animate = true }) {
   if (hasVideo(ex.id)) return <video src={`./video/${ex.id}.mp4`} autoPlay loop muted playsInline />
+  if (demoCount(ex.id)) return <Photos id={ex.id} frames={demoCount(ex.id)} animate={animate} />
   return <Figure pose={ex.pose} animate={animate} size={size} />
+}
+
+// Two photos, start and end of the move, cross-fading in the rhythm of a rep.
+function Photos({ id, frames, animate }) {
+  const [b, setB] = useState(false)
+  useEffect(() => {
+    if (!animate || frames < 2) return
+    const t = setInterval(() => setB((x) => !x), 1100)
+    return () => clearInterval(t)
+  }, [animate, frames, id])
+  const showB = frames > 1 && (animate ? b : true)
+  return (
+    <div className="photos">
+      <img src={`./demo/${id}-a.webp`} alt="" draggable="false" />
+      {frames > 1 && <img src={`./demo/${id}-b.webp`} alt="" draggable="false" style={{ opacity: showB ? 1 : 0 }} />}
+    </div>
+  )
 }
 
 export function ExerciseSheet({ ex, onClose }) {

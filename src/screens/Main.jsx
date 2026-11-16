@@ -8,10 +8,9 @@ import { buildSession, totalSessions, daysPerWeek, tiersOf, applyFeedback } from
 import { coachMessage } from '../lib/coach.js'
 import { shareRecap } from '../lib/share.js'
 import { APP } from '../config.js'
-import Figure from '../components/Figure.jsx'
 import Glyph from '../components/Glyph.jsx'
 import Confetti from '../components/Confetti.jsx'
-import { ExerciseSheet, AdaptSheet, sessionSummary, todayAdapt, adaptCount, clock } from './Session.jsx'
+import { ExerciseSheet, AdaptSheet, Demo, sessionSummary, todayAdapt, adaptCount, clock } from './Session.jsx'
 
 const DOW = { en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], hi: ['सो', 'मं', 'बु', 'गु', 'शु', 'श', 'र'] }
 
@@ -269,7 +268,7 @@ export function Explore({ nav }) {
       <div className="card"><div className="list">
         {list.map((e) => (
           <button className="li" key={e.id} onClick={() => setOpen(e)}>
-            <div className="figbox"><Figure pose={e.pose} size={52} /></div>
+            <div className="figbox" style={{ width: 52, height: 52 }}><Demo ex={e} size={52} animate={false} /></div>
             <span className="grow"><b>{L(e.name)}</b><span className="muted small" style={{ display: 'block' }}>{t('area_' + e.area)}</span></span>
             <ChevronRight size={18} className="muted" />
           </button>
