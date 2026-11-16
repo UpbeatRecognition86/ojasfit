@@ -11,15 +11,24 @@ Live at **https://ojasfit.co.in**.
   That sets the next session's volume and rest, and moves them up or down the skill ladders
 - **Three journeys** (Bodyweight Shred, Desi Strength, Living Room Express), each periodised:
   calibration → base → intensity → deload → peak week, opening and closing with a benchmark test
-- **Sessions in four phases** — warm-up, weekly skill practice, core workout, cool-down. The core
-  runs as intervals, for time, AMRAP or EMOM
+- **Full-length sessions** — the athlete picks 30, 45 or 60 minutes (suggested from their level).
+  Each session runs warm-up, a Tatva drill or skill practice, the main workout, accessory blocks
+  and cool-down. The main workout is intervals, for time, AMRAP, EMOM, or a Peak
+- **Tatva drills** — five named drills (Agni, Vayu, Prithvi, Jal, Akash), three levels each
 - **Skill ladders** for push, legs and core, six rungs each
-- **Peaks** — fixed for-time workouts with a personal best per peak
+- **Peaks** — 15 signature for-time workouts in three types, each climbable in three splits
+  (Base Camp, Ridge, Summit) with a personal best per split. Journeys schedule them by phase
 - **Adapt session** — quiet mode, small space, 20 or 15 minutes, sore body parts; saved for the day
 - **Guided player** — video slot (falls back to an animated figure), giant rep counter, timers,
   voice coaching from recorded clips or the phone's text-to-speech
 - **Recap** — result card shared as an image through the phone's share sheet
 - Hindi + English, several profiles per phone, offline PWA; all data stays on the device
+
+## The training gate
+
+`npm test` (`scripts/check-programs.mjs`) generates every session for every kind of athlete and
+checks it against `docs/TRAINING-STANDARDS.md`: session length, structure, safety of each
+adaptation, progression limits. The publishing workflow runs it before every build.
 
 ## Adding real content
 

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ArrowLeft, Play, Check, Flame, Clock, ChevronRight, Search, Share2, Sparkles, SlidersHorizontal, Trophy, TrendingUp, TrendingDown, Dumbbell, Lock } from 'lucide-react'
 import { useStore, activeProfile, stats, dayStr, addDays, weekStart, rank } from '../lib/store.jsx'
 import { useT } from '../lib/i18n.js'
-import { JOURNEYS, JMAP, PEAKS, PMAP, phaseOf, recommend } from '../data/journeys.js'
+import { JOURNEYS, JMAP, PEAKS, DRILLS, SPLITS, pbKey, phaseOf, recommend } from '../data/journeys.js'
 import { EXERCISES, EX, TREES } from '../data/exercises.js'
 import { buildSession, totalSessions, daysPerWeek, tiersOf, applyFeedback } from '../lib/plan.js'
 import { coachMessage } from '../lib/coach.js'
@@ -77,7 +77,7 @@ export function Home({ nav }) {
           <span className={`chip ${session.benchmark ? 'gold' : ''}`} style={{ alignSelf: 'flex-start' }}>
             {session.benchmark ? t('badge_bench') : st.days.has(today) ? t('badge_next') : t('badge_today')}
           </span>
-          <h2>{L(session.title)}</h2>
+          <h2>{L(session.title)}{session.peakId && !session.benchmark ? ` · ${t('split_' + session.split)}` : ''}</h2>
           <div className="meta">
             <span><Clock size={14} /> {session.minutes} {t('min')}</span>
             <span><Flame size={14} /> ~{session.kcal} {t('kcal')}</span>
@@ -188,7 +188,7 @@ export function JourneyDetail({ jid, nav }) {
                   return (
                     <button className={`li ${n > done ? 'off' : ''}`} key={d} onClick={() => open(n)}>
                       <span className={`num ${n < done ? 'done' : n === done ? 'next' : ''}`}>{n < done ? <Check size={16} /> : n === done ? <Play size={14} fill="currentColor" /> : d + 1}</span>
-                      <span className="grow"><b>{L(s.title)}</b><span className="muted small" style={{ display: 'block' }}>{t('fmt_' + s.format)} · {s.minutes} {t('min')}{s.skill ? ` · ${t('skill')}` : ''}</span></span>
+                      <span className="grow"><b>{L(s.title)}{s.peakId ? ` · ${t('split_' + s.split)}` : ''}</b><span className="muted small" style={{ display: 'block' }}>{t('fmt_' + s.format)} · {s.minutes} {t('min')}{s.drill ? ` · ${L(DRILLS[s.drill.id].name)}` : ''}{s.skill ? ` · ${t('skill')}` : ''}</span></span>
                       {n > done ? <Lock size={15} className="muted" /> : <ChevronRight size={18} className="muted" />}
                     </button>
                   )
@@ -241,20 +241,37 @@ export function Explore({ nav }) {
       ))}
 
       <div><h2>{t('peaks')}</h2><p className="muted small">{t('peaksSub')}</p></div>
+      {['full', 'upper', 'legs'].map((type) => (
+        <div className="card" key={type}>
+          <h3 className="eyebrow">{t('ptype_' + type)}</h3>
+          <div className="list">
+            {PEAKS.filter((pk) => pk.type === type).map((pk) => {
+              const bests = SPLITS.map((sp) => [sp, (p.pbs || {})[pbKey(pk.id, sp)]]).filter(([, v]) => v)
+              return (
+                <button className="li" key={pk.id} onClick={() => nav.go('session', { pid: pk.id })}>
+                  <span className="jbadge sm"><Glyph id="mountain" size={20} /></span>
+                  <span className="grow">
+                    <b>{L(pk.name)}</b> <span className="chip plain">{t('lvl_' + pk.lvl)}</span>
+                    <span className="muted small" style={{ display: 'block' }}>
+                      {bests.length ? bests.map(([sp, v]) => <span key={sp} style={{ marginRight: 10 }}>{t('split_' + sp)} <b className="accent num-font">{clock(v)}</b></span>) : `${t('roundsN', { n: pk.rounds })} · ${t('noBest')}`}
+                    </span>
+                  </span>
+                  <ChevronRight size={18} className="muted" />
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+
+      <div><h2>{t('drills')}</h2><p className="muted small">{t('drillsSub')}</p></div>
       <div className="card"><div className="list">
-        {PEAKS.map((pk) => {
-          const best = (p.pbs || {})[pk.id]
-          return (
-            <button className="li" key={pk.id} onClick={() => nav.go('session', { pid: pk.id })}>
-              <span className="jbadge sm"><Glyph id="mountain" size={20} /></span>
-              <span className="grow">
-                <b>{L(pk.name)}</b> <span className="chip plain">{t('lvl_' + pk.lvl)}</span>
-                <span className="muted small" style={{ display: 'block' }}>{t('roundsN', { n: pk.rounds })} · {best ? <b className="accent num-font">{t('best')} {clock(best)}</b> : t('noBest')}</span>
-              </span>
-              <ChevronRight size={18} className="muted" />
-            </button>
-          )
-        })}
+        {Object.entries(DRILLS).map(([id, d]) => (
+          <div className="li" key={id}>
+            <span className="jbadge sm" style={{ color: 'var(--blue)' }}><Glyph id={d.icon} size={20} /></span>
+            <span className="grow"><b>{L(d.name)}</b> <span className="chip blue">{L(d.means)}</span><span className="muted small" style={{ display: 'block' }}>{L(d.about)}</span></span>
+          </div>
+        ))}
       </div></div>
 
       <h2>{t('library')}</h2>
@@ -330,7 +347,7 @@ export function Recap({ hid, nav }) {
   const h = p.history.find((x) => x.id === hid) || p.history[p.history.length - 1]
   const st = stats(p)
   if (!h) return null
-  const title = L(h.title)
+  const title = L(h.title) + (h.split ? ` · ${t('split_' + h.split)}` : '')
   const fb = h.fb
   const metrics = [
     h.time ? [clock(h.time), t('time')] : [clock(h.seconds ?? h.minutes * 60), t('duration')],

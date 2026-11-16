@@ -9,7 +9,7 @@ import { LIMITS } from './Onboarding.jsx'
 import Glyph from '../components/Glyph.jsx'
 import Sheet from '../components/Sheet.jsx'
 import { weeklyMinutes } from '../lib/coach.js'
-import { PEAKS } from '../data/journeys.js'
+import { PEAKS, SPLITS, LENGTHS, pbKey } from '../data/journeys.js'
 
 import { clock } from './Session.jsx'
 
@@ -47,7 +47,7 @@ export function Progress() {
   const r = rank(p.points)
   const wk = weeklyMinutes(p, 8)
   const wkMax = Math.max(30, ...wk.map((w) => w.minutes))
-  const bests = PEAKS.filter((x) => (p.pbs || {})[x.id])
+  const bests = PEAKS.flatMap((x) => SPLITS.map((sp) => ({ ...x, sp, time: (p.pbs || {})[pbKey(x.id, sp)] }))).filter((x) => x.time)
   const logWeight = () => {
     const v = Number(kg)
     if (!(v >= 10 && v <= 300)) return
@@ -86,7 +86,7 @@ export function Progress() {
         <div className="card">
           <h2 className="h3">{t('yourBests')}</h2>
           <div className="list">
-            {bests.map((x) => <div className="li" key={x.id}><span className="grow"><b>{L(x.name)}</b> <span className="chip plain">{t('lvl_' + x.lvl)}</span></span><b style={{ fontVariantNumeric: 'tabular-nums' }}>{clock(p.pbs[x.id])}</b></div>)}
+            {bests.map((x) => <div className="li" key={x.id + x.sp}><span className="grow"><b>{L(x.name)}</b> <span className="chip plain">{t('split_' + x.sp)}</span></span><b className="num-font">{clock(x.time)}</b></div>)}
           </div>
         </div>
       )}
@@ -149,12 +149,12 @@ function EditSheet({ onClose }) {
   const { state, update } = useStore()
   const { t } = useT()
   const p = activeProfile(state)
-  const [d, setD] = useState({ name: p.name, level: p.level, days: p.days, limits: p.limits, quiet: !!p.quiet, kg: p.kg || '', cm: p.cm || '' })
+  const [d, setD] = useState({ name: p.name, level: p.level, days: p.days, limits: p.limits, quiet: !!p.quiet, length: p.length || 45, kg: p.kg || '', cm: p.cm || '' })
   const set = (patch) => setD((x) => ({ ...x, ...patch }))
   const save = () => {
     update((s) => {
       const pp = activeProfile(s)
-      Object.assign(pp, { name: d.name.trim() || pp.name, level: d.level, days: d.days, limits: d.limits, quiet: d.quiet, kg: Number(d.kg) || null, cm: Number(d.cm) || null })
+      Object.assign(pp, { name: d.name.trim() || pp.name, level: d.level, days: d.days, limits: d.limits, quiet: d.quiet, length: d.length, kg: Number(d.kg) || null, cm: Number(d.cm) || null })
     })
     onClose()
   }
@@ -165,6 +165,8 @@ function EditSheet({ onClose }) {
         <div className="pills">{['beginner', 'inter', 'advanced'].map((l) => <button key={l} className={`pill ${d.level === l ? 'on' : ''}`} onClick={() => set({ level: l })}>{t('level_' + l)}</button>)}</div>
         <h2 className="h3">{t('daysTitle')}</h2>
         <div className="pills">{[2, 3, 4, 5, 6].map((n) => <button key={n} className={`pill ${d.days === n ? 'on' : ''}`} onClick={() => set({ days: n })}>{n}</button>)}</div>
+        <h2 className="h3">{t('lengthTitle')}</h2>
+        <div className="seg">{LENGTHS.map((n) => <button key={n} className={d.length === n ? 'on' : ''} onClick={() => set({ length: n })}>{t('lengthN', { n })}</button>)}</div>
         <h2 className="h3">{t('healthTitle')}</h2>
         <div className="pills">
           {LIMITS.map((id) => (

@@ -394,6 +394,24 @@ const S = {
   c_welcome: ['Namaste {name}! We start with a short benchmark test to find your level.', 'नमस्ते {name}! शुरुआत एक छोटे बेंचमार्क टेस्ट से, ताकि आपका स्तर पता चले।'],
   peaksSub: ['Fixed workouts against the clock. Beat your own time.', 'घड़ी के ख़िलाफ़ तय कसरतें। अपना ही समय तोड़िए।'],
   planSub: ['Picked for your goal. You can switch any time.', 'आपके लक्ष्य के हिसाब से चुनी गई। कभी भी बदल सकते हैं।'],
+  // ---------- peaks, splits, drills, session length ----------
+  drill: ['Tatva drill', 'तत्व ड्रिल'],
+  accessory: ['Accessory', 'एक्सेसरी'],
+  sum_drill: ['{x} drill ({m} min)', '{x} ड्रिल ({m} मिनट)'],
+  sum_acc: ['Accessory strength ({m} min)', 'एक्सेसरी ताक़त ({m} मिनट)'],
+  split_base: ['Base Camp', 'बेस कैंप'],
+  split_ridge: ['Ridge', 'रिज'],
+  split_summit: ['Summit', 'शिखर'],
+  splitHelp: ['Three ways to climb: a third, two thirds, or the whole Peak. Each keeps its own best time.', 'चढ़ने के तीन तरीक़े: एक तिहाई, दो तिहाई, या पूरी चोटी। हर एक का अपना सर्वश्रेष्ठ समय।'],
+  ptype_full: ['Full body', 'पूरा शरीर'],
+  ptype_upper: ['Upper body', 'ऊपरी शरीर'],
+  ptype_legs: ['Legs & core', 'पैर और कोर'],
+  drills: ['Tatva drills', 'तत्व ड्रिल'],
+  drillsSub: ['Five short drills, one per element. Your coach adds one to each session.', 'पाँच छोटी ड्रिल, हर तत्व की एक। आपका कोच हर सेशन में एक जोड़ता है।'],
+  lengthTitle: ['Session length', 'सेशन की लंबाई'],
+  lengthSub: ['A full session, warm-up to cool-down. You can shorten any day.', 'पूरा सेशन, वार्म-अप से कूल-डाउन तक। किसी भी दिन छोटा कर सकते हैं।'],
+  lengthN: ['{n} min', '{n} मिनट'],
+  suggested: ['Suggested', 'सुझाव'],
 }
 
 export const TIPS = [

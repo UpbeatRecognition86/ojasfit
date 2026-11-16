@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { APP, PLANS, FREE_PROFILES, PAYMENTS } from '../config.js'
-import { JMAP, recommend } from '../data/journeys.js'
+import { JMAP, PMAP, recommend, defaultLength } from '../data/journeys.js'
 import { START_TIERS } from '../data/exercises.js'
 
 // While the app is free, everyone gets full access and no paywall is shown anywhere.
@@ -27,7 +27,8 @@ export function migrate(s) {
     p.volume = p.volume || p.difficulty || 1
     p.rest = p.rest || 45
     p.streaks = p.streaks || {}
-    p.pbs = p.pbs || {}
+    p.pbs = Object.fromEntries(Object.entries(p.pbs || {}).map(([k, v]) => [PMAP[k] ? `${k}:summit` : k, v]))
+    p.length = p.length || defaultLength(p.level)
     p.completed = p.completed || []
     p.progress = p.progress || {}
     if (!JMAP[p.journeyId]) p.journeyId = recommend(p)
@@ -135,5 +136,6 @@ export function newProfile(data) {
     ...data,
   }
   p.tiers = { ...START_TIERS[p.level], ...(data.tiers || {}) }
+  p.length = data.length || defaultLength(p.level)
   return p
 }

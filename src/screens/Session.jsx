@@ -4,6 +4,7 @@ import { useStore, activeProfile, dayStr } from '../lib/store.jsx'
 import { useT } from '../lib/i18n.js'
 import { EX } from '../data/exercises.js'
 import { buildSession } from '../lib/plan.js'
+import { DRILLS, SPLITS, splitRounds } from '../data/journeys.js'
 import { beep, sayClips, stopSpeaking, keepAwake, buzz, hasVideo, demoCount } from '../lib/media.js'
 import Figure from '../components/Figure.jsx'
 import Sheet from '../components/Sheet.jsx'
@@ -99,12 +100,22 @@ export function AdaptSheet({ canShorten = true, onClose }) {
 
 // One-line description of the core block, e.g. "4 rounds: Burpees, Squats, Plank".
 export function coreSummary(session, t, L) {
-  const core = session.steps.filter((s) => s.section === 'core')
+  const core = session.steps.filter((s) => s.section === 'core' && (s.block || 1) === 1)
   const names = [...new Set(core.map((s) => L(EX[s.ex].name)))].join(', ')
   if (session.format === 'amrap') return t('sum_amrap', { m: Math.round(session.cap / 60), x: names })
   if (session.format === 'emom') return t('sum_emom', { m: Math.round(session.cap / 60), x: names })
   if (session.format === 'fortime') return t('sum_fortime', { n: core[0]?.rounds || session.rounds, x: names })
   return t('sum_intervals', { n: session.rounds, x: names })
+}
+// A drill repeats its moves; show each move once, with its range of reps when it is a ladder.
+function drillRows(steps) {
+  const rows = new Map()
+  for (const s of steps) {
+    const r = rows.get(s.ex)
+    if (!r) rows.set(s.ex, { ...s, lo: s.amount, hi: s.amount })
+    else { r.lo = Math.min(r.lo, s.amount); r.hi = Math.max(r.hi, s.amount) }
+  }
+  return [...rows.values()].map((r) => (r.type === 'reps' && r.hi > r.lo ? { ...r, range: `${r.lo}–${r.hi}` } : r))
 }
 const secMin = (steps) => Math.max(1, Math.round(steps.reduce((a, s) => a + (s.type === 'reps' ? s.amount * EX[s.ex].spr : s.amount) + s.rest, 0) / 60))
 export function sessionSummary(session, t, L) {
@@ -112,35 +123,42 @@ export function sessionSummary(session, t, L) {
   const out = []
   if (by('warm').length) out.push(t('sum_warm', { m: secMin(by('warm')) }))
   if (session.skill) out.push(t('sum_skill', { x: L(EX[session.skill.ex].name) }))
+  if (session.drill) out.push(t('sum_drill', { x: `${L(DRILLS[session.drill.id].name)} ${session.drill.level}`, m: secMin(by('drill')) }))
   out.push(coreSummary(session, t, L))
+  if (session.accessory) out.push(t('sum_acc', { m: secMin(session.steps.filter((s) => s.section === 'core' && s.block > 1)) }))
   if (by('cool').length) out.push(t('sum_cool', { m: secMin(by('cool')) }))
   return out
 }
 
 // Preview of a session, then the guided player.
-export default function Session({ tpl, index, onBack, onFinish }) {
+export default function Session({ tpl, index, split: split0, onBack, onFinish }) {
   const { state } = useStore()
   const { t, L } = useT()
   const profile = activeProfile(state)
   const adapt = todayAdapt(profile)
   const [open, setOpen] = useState(null)
   const [adapting, setAdapting] = useState(false)
-  const session = useMemo(() => buildSession(tpl, index, profile, adapt), [tpl, index, profile, adapt])
+  const [split, setSplit] = useState(split0 || 'summit')
+  const session = useMemo(() => buildSession(tpl, index, profile, adapt, { split }), [tpl, index, profile, adapt, split])
   const [playing, setPlaying] = useState(false)
 
   if (playing) return <Player session={session} onExit={() => setPlaying(false)} onFinish={onFinish} />
 
-  const firstOf = (sec) => session.steps.filter((s) => s.section === sec && (s.type === 'emom' ? s.round <= 2 : (s.round || 1) === 1))
-  const sections = ['warm', 'skill', 'core', 'cool'].map((sec) => [sec, firstOf(sec)]).filter(([, l]) => l.length)
+  const first = (list) => list.filter((s) => (s.type === 'emom' ? s.round <= 2 : (s.round || 1) === 1))
+  const by = (sec, blk) => session.steps.filter((s) => s.section === sec && (blk == null || s.block === blk))
+  const blocks = [...new Set(by('core').map((s) => s.block))].filter((b) => b > 1)
+  const sections = [['warm', first(by('warm'))], ['skill', by('skill').slice(0, 1)], ['drill', by('drill')], ['core', first(by('core', 1))], ...blocks.map((b) => ['acc' + b, first(by('core', b))]), ['cool', first(by('cool'))]].filter(([, l]) => l.length)
+  const roundsOf = (list) => list[0]?.rounds || 1
   const n = adaptCount(adapt)
   const coreLabel = session.format === 'intervals' || session.format === 'fortime' ? t('roundsN', { n: session.steps.find((s) => s.section === 'core')?.rounds || 1 }) : `${Math.round(session.cap / 60)} ${t('min')}`
+  const drillDef = session.drill ? DRILLS[session.drill.id] : null
   return (
     <div className="screen plain">
       <div className="topbar">
         <button className="iconbtn" onClick={onBack} aria-label={t('back')}><ArrowLeft size={20} /></button>
         <div className="grow">
           {tpl.pool && <div className="muted small">{L(tpl.name)} · {t('weekDay', { w: session.week, d: session.day })}</div>}
-          <h2>{L(session.title)}</h2>
+          <h2>{L(session.title)}{session.peakId ? ` · ${t('split_' + session.split)}` : ''}</h2>
         </div>
         <span className={`chip ${session.benchmark ? 'gold' : ''}`}>{t('fmt_' + session.format)}</span>
       </div>
@@ -150,20 +168,32 @@ export default function Session({ tpl, index, onBack, onFinish }) {
         <div><b>{new Set(session.steps.map((s) => s.ex)).size}</b><span>{t('movesWord')}</span></div>
       </div>
       {session.benchmark && <p className="note warn">{t('benchNote')}</p>}
-      {session.forTime && !session.benchmark && <p className="note">{t('warmFirst')}</p>}
+      {!tpl.pool && (
+        <div className="stack" style={{ gap: 6 }}>
+          <div className="seg">{SPLITS.map((sp) => <button key={sp} className={split === sp ? 'on' : ''} onClick={() => setSplit(sp)}>{t('split_' + sp)} · {splitRounds(tpl, sp)}</button>)}</div>
+          <p className="muted small">{t('splitHelp')}</p>
+        </div>
+      )}
       <button className="btn ghost plain-case" onClick={() => setAdapting(true)}>
         <SlidersHorizontal size={17} /> {n ? `${t('adapted')} (${n})` : `${t('adaptBtn')} (${t('adaptHint')})`}
       </button>
       {sections.map(([sec, steps]) => (
         <div className="card" key={sec}>
-          <div className="row between"><h3 className="eyebrow">{t(sec)}</h3>{sec === 'core' && <span className="chip plain">{t('fmt_' + session.format)} · {coreLabel}</span>}{sec === 'skill' && <span className="chip blue">3 ×</span>}</div>
+          <div className="row between">
+            <h3 className="eyebrow">{sec === 'drill' ? `${t('drill')} · ${L(drillDef.name)} ${session.drill.level}` : sec.startsWith('acc') ? t('accessory') : t(sec)}</h3>
+            {sec === 'core' && <span className="chip plain">{t('fmt_' + session.format)} · {coreLabel}</span>}
+            {sec === 'skill' && <span className="chip blue">{roundsOf(by('skill'))} ×</span>}
+            {sec.startsWith('acc') && <span className="chip plain">{t('roundsN', { n: roundsOf(steps) })}</span>}
+            {sec === 'drill' && <span className="chip blue">{L(drillDef.means)}</span>}
+          </div>
+          {sec === 'drill' && <p className="muted small" style={{ marginTop: 4 }}>{L(drillDef.about)}</p>}
           <div className="list">
-            {(sec === 'skill' ? steps.slice(0, 1) : steps).map((s, k) => (
+            {(sec === 'drill' ? drillRows(steps) : steps).map((s, k) => (
               <button className="li" key={k} onClick={() => setOpen(EX[s.ex])}>
                 <div className="figbox" style={{ width: 54, height: 54, position: 'relative' }}><Demo ex={EX[s.ex]} size={54} animate={false} /></div>
                 <div className="grow">
                   <b>{L(EX[s.ex].name)}</b>
-                  <div className="muted small"><Amount step={s} />{s.type === 'emom' ? ` / ${t('min')}` : ''}</div>
+                  <div className="muted small">{s.range ? `${s.range} ${t('times')}` : <Amount step={s} />}{s.type === 'emom' ? ` / ${t('min')}` : ''}</div>
                   {s.swapped && <span className="chip plain" style={{ marginTop: 4, textTransform: 'none', letterSpacing: 0 }}><Repeat size={11} /> {t('swappedFor', { x: L(EX[s.swapped].name) })}</span>}
                 </div>
               </button>
@@ -204,7 +234,7 @@ function Player({ session, onExit, onFinish }) {
   const live = useRef({})
   const step = steps[i]
   const ex = EX[step.ex]
-  live.current = { phase, loop: !!step.loop, core: step.section === 'core' }
+  live.current = { phase, loop: !!step.loop, core: !!step.timed }
   const timed = phase !== 'work' || step.type !== 'reps'
   const upcoming = phase === 'ready' ? steps[i] : steps[i + 1] || (step.loop ? steps.find((s) => s.loop) : null)
 
@@ -291,6 +321,8 @@ function Player({ session, onExit, onFinish }) {
 
   const label = step.type === 'emom' ? t('minuteN', { n: step.round, t: step.rounds })
     : step.section === 'skill' ? `${t('skill')} · ${t('setN', { n: step.round, t: step.rounds })}`
+    : step.section === 'drill' ? `${L(DRILLS[session.drill.id].name)} ${session.drill.level} · ${step.round}/${step.rounds}`
+    : step.section === 'core' && step.block > 1 ? `${t('accessory')} · ${t('roundN', { n: step.round, t: step.rounds })}`
     : step.loop ? `${t('fmt_amrap')} · ${t('roundsLbl')} ${loops}`
     : step.section === 'core' && step.rounds > 1 ? t('roundN', { n: step.round, t: step.rounds })
     : t(step.section)
@@ -302,7 +334,7 @@ function Player({ session, onExit, onFinish }) {
         <div className="hud">
           <button className="iconbtn" onClick={() => setAsking(true)} aria-label={t('close')}><X size={20} /></button>
           <span className="grow">{label}</span>
-          {session.forTime && step.section === 'core' && <span className="clock accent"><Timer size={15} /> {clock(coreTime.current)}</span>}
+          {session.forTime && step.timed && <span className="clock accent"><Timer size={15} /> {clock(coreTime.current)}</span>}
           {step.loop && phase !== 'ready' && <span className="clock accent"><Timer size={15} /> {clock(capLeft)}</span>}
           <button className="row" style={{ gap: 4, color: voice ? 'var(--brand)' : 'var(--muted)', fontWeight: 700 }} onClick={() => { if (voice) stopSpeaking(); update((s) => { s.settings.voice = !voice }) }}>
             {voice ? <Volume2 size={16} /> : <VolumeX size={16} />}<span className="small">{voice ? t('voiceOn') : t('voiceOff')}</span>
@@ -315,6 +347,7 @@ function Player({ session, onExit, onFinish }) {
             <div className="vid">
               <Demo ex={ex} size={230} animate={!paused} />
               {step.section === 'skill' && <span className="chip blue tagline"><Zap size={11} /> {t('skill')}</span>}
+              {step.section === 'drill' && <span className="chip blue tagline"><Zap size={11} /> {L(DRILLS[session.drill.id].name)}</span>}
             </div>
             <div className="stage" key={`${i}-${loops}`}>
               {step.type === 'reps' && <div className="repnum">{step.amount}</div>}

@@ -24,6 +24,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # The training gate: publishing stops if any generated session breaks docs/TRAINING-STANDARDS.md
+      - run: npm test
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
