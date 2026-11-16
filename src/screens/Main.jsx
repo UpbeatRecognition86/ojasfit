@@ -304,7 +304,7 @@ export function Calibrate({ hid, nav }) {
     <div className="screen plain">
       <h1 style={{ marginTop: 8 }}>{t('shabash')}</h1>
       <div className="stack">
-        <h3>{t('rpeQ')}</h3>
+        <h2 className="h3">{t('rpeQ')}</h2>
         {[1, 2, 3, 4, 5].map((n) => (
           <button key={n} className={`opt ${rpe === n ? 'on' : ''}`} onClick={() => setRpe(n)} style={{ minHeight: 52, padding: '8px 14px' }}>
             <span className="opt-icon" style={{ fontWeight: 800 }}>{n}</span>
@@ -313,7 +313,7 @@ export function Calibrate({ hid, nav }) {
         ))}
       </div>
       <div className="stack">
-        <h3>{t('techQ')}</h3>
+        <h2 className="h3">{t('techQ')}</h2>
         <div className="seg">{[1, 2, 3].map((n) => <button key={n} className={tech === n ? 'on' : ''} onClick={() => setTech(n)}>{t('tech_' + n)}</button>)}</div>
       </div>
       <div className="spacer" />

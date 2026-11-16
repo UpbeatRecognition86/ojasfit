@@ -112,7 +112,7 @@ export default function Onboarding({ add = false, onDone }) {
               </button>
             ))}
           </div>
-          <div><h3>{t('daysTitle')}</h3><p className="muted small">{t('daysSub')}</p></div>
+          <div><h2 className="h3">{t('daysTitle')}</h2><p className="muted small">{t('daysSub')}</p></div>
           <div className="pills">
             {[2, 3, 4, 5, 6].map((n) => <button key={n} className={`pill ${d.days === n ? 'on' : ''}`} onClick={() => set({ days: n })}>{n}</button>)}
           </div>
@@ -152,7 +152,7 @@ export default function Onboarding({ add = false, onDone }) {
         <>
           <div><h1>{t('planTitle')}</h1><p className="muted">{t('planSub')}</p></div>
           <JourneyOption j={JMAP[rec]} on={chosen === rec} onClick={() => setJid(rec)} badge={t('recommended')} />
-          {others.length > 0 && <h3>{t('otherOptions')}</h3>}
+          {others.length > 0 && <h2 className="h3">{t('otherOptions')}</h2>}
           {others.map((j) => <JourneyOption key={j.id} j={j} on={chosen === j.id} onClick={() => setJid(j.id)} />)}
         </>
       )}

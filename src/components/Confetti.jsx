@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-const COLORS = ['#ee5207', '#ff8a1f', '#1f9d55', '#f5b83d', '#d6336c', '#3b5bdb']
+const COLORS = ['#ff5a6e', '#ffb0bb', '#8ea2ff', '#ffc247', '#4be3a0', '#f4f5ff']
 
 // A short burst of confetti drawn on a canvas. Skipped when the person prefers reduced motion.
 export default function Confetti() {
