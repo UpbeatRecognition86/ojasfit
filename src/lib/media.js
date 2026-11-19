@@ -119,13 +119,8 @@ export async function loadVideoPack() {
 export const hasVideo = (id) => videoIds.has(id)
 
 // ---- Exercise photos ----
-// public/demo/manifest.json maps an exercise id to its number of frames (1 or 2);
-// the frames are public/demo/<id>-a.webp and <id>-b.webp. See DEMO-PROMPTS.md.
-let demoFrames = {}
-export async function loadDemoPack() {
-  try {
-    const r = await fetch('./demo/manifest.json', { cache: 'no-cache' })
-    if (r.ok) demoFrames = await r.json()
-  } catch { /* offline or no pack */ }
-}
+// src/data/demos.json maps an exercise id to its number of frames, written by
+// scripts/process_demos.py; the frames are public/demo/<id>-0.webp, <id>-1.webp, ...
+// It is bundled into the app so photos show from the very first screen.
+import demoFrames from '../data/demos.json'
 export const demoCount = (id) => demoFrames[id] || 0

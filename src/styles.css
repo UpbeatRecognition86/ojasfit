@@ -280,3 +280,30 @@ label.field { display: flex; flex-direction: column; gap: 6px; font-weight: 650;
 .btn.google { background: #fff; color: #1f1f1f; }
 .input.otp { font-size: 1.6rem; letter-spacing: 0.5em; text-align: center; font-variant-numeric: tabular-nums; }
 .input.row input { background: none; border: 0; outline: none; color: inherit; font: inherit; min-height: 30px; }
+
+/* Day planner on the Coach tab */
+.daystrip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.daychip { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 0 6px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); min-height: 58px; transition: background 0.15s, border-color 0.15s; }
+.daychip span { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; max-width: 100%; }
+.daychip b { font-size: 1rem; font-variant-numeric: tabular-nums; }
+.daychip i { width: 6px; height: 6px; border-radius: 50%; background: transparent; }
+.daychip.session i { background: var(--brand); }
+.daychip.done i { background: var(--ok); }
+.daychip.rest i { background: #353c66; }
+.daychip.on { border-color: var(--brand); background: var(--brand-soft); }
+.pager { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 -16px; align-items: flex-start; overscroll-behavior-x: contain; }
+.pager::-webkit-scrollbar { display: none; }
+.page { flex: 0 0 100%; scroll-snap-align: center; scroll-snap-stop: always; padding: 0 16px; box-sizing: border-box; min-width: 0; }
+.move-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.move-strip .figbox { aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--card-2); }
+.small-metrics { grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 0; }
+.small-metrics .metric { padding: 9px 4px; text-align: center; }
+.small-metrics .metric b { font-size: 1.05rem; }
+.small-metrics .metric span { font-size: 0.6rem; }
+.done-card { border-color: rgba(75, 227, 160, 0.35); }
+.rest-card { border-color: var(--line); }
+.seg.mini { flex: none; }
+.seg.mini button { padding: 6px 8px; font-size: 0.72rem; flex: none; }
+/* Small thumbnails: zoom in on the person, who stands on the floor line near the bottom. */
+.figbox .photos { overflow: hidden; border-radius: inherit; }
+.figbox .photos img { transform: scale(1.3); transform-origin: 50% 72%; }

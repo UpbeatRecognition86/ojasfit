@@ -28,18 +28,22 @@ export function Demo({ ex, size, animate = true }) {
 }
 
 // Two photos, start and end of the move, cross-fading in the rhythm of a rep.
+// Steps through the frames (start, end, and the other side for alternating moves), crossfading.
+// A still picture shows the end position, which says the most about the move.
 function Photos({ id, frames, animate }) {
-  const [b, setB] = useState(false)
+  const [i, setI] = useState(0)
   useEffect(() => {
+    setI(0)
     if (!animate || frames < 2) return
-    const t = setInterval(() => setB((x) => !x), 1100)
+    const t = setInterval(() => setI((x) => (x + 1) % frames), 1100)
     return () => clearInterval(t)
   }, [animate, frames, id])
-  const showB = frames > 1 && (animate ? b : true)
+  const shown = animate ? i : Math.min(1, frames - 1)
   return (
     <div className="photos">
-      <img src={`./demo/${id}-a.webp`} alt="" draggable="false" />
-      {frames > 1 && <img src={`./demo/${id}-b.webp`} alt="" draggable="false" style={{ opacity: showB ? 1 : 0 }} />}
+      {Array.from({ length: frames }, (_, n) => (
+        <img key={n} src={`./demo/${id}-${n}.webp`} alt="" draggable="false" loading={n === 0 ? 'eager' : 'lazy'} style={{ opacity: n === shown || n === 0 ? 1 : 0, zIndex: n === shown ? 1 : 0 }} />
+      ))}
     </div>
   )
 }

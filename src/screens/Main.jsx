@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import { ArrowLeft, Play, Check, Flame, Clock, ChevronRight, Search, Share2, Sparkles, SlidersHorizontal, Trophy, TrendingUp, TrendingDown, Dumbbell, Lock } from 'lucide-react'
+import { useState, useRef, useMemo } from 'react'
+import { ArrowLeft, Play, Check, Flame, Clock, ChevronRight, Search, Share2, Sparkles, SlidersHorizontal, Trophy, TrendingUp, TrendingDown, Dumbbell, Lock, Repeat, Moon, CheckCircle2 } from 'lucide-react'
 import { useStore, activeProfile, stats, dayStr, addDays, weekStart, rank } from '../lib/store.jsx'
-import { useT } from '../lib/i18n.js'
+import { useT, TIPS } from '../lib/i18n.js'
 import { JOURNEYS, JMAP, PEAKS, DRILLS, SPLITS, pbKey, phaseOf, recommend } from '../data/journeys.js'
 import { EXERCISES, EX, TREES } from '../data/exercises.js'
-import { buildSession, totalSessions, daysPerWeek, tiersOf, applyFeedback } from '../lib/plan.js'
+import { buildSession, totalSessions, daysPerWeek, tiersOf, applyFeedback, mainMoves, TRAIN_DAYS } from '../lib/plan.js'
 import { coachMessage } from '../lib/coach.js'
 import { shareRecap } from '../lib/share.js'
 import { APP } from '../config.js'
@@ -16,6 +16,59 @@ const DOW = { en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], hi: ['सो', 'मं', 
 
 function PhaseBar({ j, week }) {
   return <div className="phases">{Array.from({ length: j.weeks }, (_, w) => <i key={w} className={w < week ? 'done' : w === week ? 'now' : ''} />)}</div>
+}
+
+const LOCALE = { en: 'en-IN', hi: 'hi-IN' }
+const asDate = (str) => { const [y, m, d] = str.split('-').map(Number); return new Date(y, m - 1, d) }
+const weekday = (str, lang, style = 'long') => new Intl.DateTimeFormat(LOCALE[lang] || 'en-IN', { weekday: style }).format(asDate(str))
+const dowOf = (str) => (asDate(str).getDay() + 6) % 7
+
+// The next seven days: today (its summary once trained), then each day's planned session or rest.
+function planWeek(p, j, idx, total, today) {
+  const pattern = TRAIN_DAYS[daysPerWeek(j, p)]
+  const doneToday = p.history.filter((h) => h.date === today)
+  const days = []
+  let next = idx
+  for (let k = 0; k < 7; k++) {
+    const date = addDays(today, k)
+    if (k === 0 && doneToday.length) { days.push({ date, kind: 'done', entries: doneToday }); continue }
+    if (next >= total) { days.push({ date, kind: 'end' }); break }
+    if (k === 0 || pattern.includes(dowOf(date))) days.push({ date, kind: 'session', idx: next++ })
+    else days.push({ date, kind: 'rest' })
+  }
+  return days
+}
+
+function MoveStrip({ moves }) {
+  return (
+    <div className="move-strip">
+      {moves.slice(0, 6).map((m) => <div className="figbox" key={m.ex}><Demo ex={EX[m.ex]} size={56} animate={false} /></div>)}
+    </div>
+  )
+}
+
+function DayPager({ days, render }) {
+  const { t, lang } = useT()
+  const ref = useRef(null)
+  const [at, setAt] = useState(0)
+  const onScroll = () => { const el = ref.current; if (el) setAt(Math.round(el.scrollLeft / el.clientWidth)) }
+  const go = (k) => ref.current?.scrollTo({ left: k * ref.current.clientWidth, behavior: 'smooth' })
+  return (
+    <div className="stack" style={{ gap: 10 }}>
+      <div className="daystrip" role="tablist">
+        {days.map((d, k) => (
+          <button key={d.date} role="tab" aria-selected={k === at} className={`daychip ${k === at ? 'on' : ''} ${d.kind}`} onClick={() => go(k)}>
+            <span>{k === 0 ? t('todayShort') : weekday(d.date, lang, 'short')}</span>
+            <b>{asDate(d.date).getDate()}</b>
+            <i aria-hidden="true" />
+          </button>
+        ))}
+      </div>
+      <div className="pager" ref={ref} onScroll={onScroll}>
+        {days.map((d, k) => <div className="page" key={d.date} aria-hidden={k !== at}>{render(d, k)}</div>)}
+      </div>
+    </div>
+  )
 }
 
 // ---------------------------------------------------------------- Coach dashboard
@@ -41,6 +94,9 @@ export function Home({ nav }) {
   const weekDone = !!(!finished && idx > 0 && idx % dpw === 0 && lastH?.weekDone && lastH.date >= ws)
   const msg = coachMessage(p, { finished, weekDone, dpw, left: dpw - (idx % dpw) })
   const n = adaptCount(adapt)
+  const days = planWeek(p, j, idx, total, today)
+  const sessionsByIdx = useMemo(() => Object.fromEntries(days.filter((d) => d.kind === 'session').map((d, k) => [d.idx, k === 0 && d.date === today ? session : buildSession(j, d.idx, p, d.date === today ? adapt : {})])), [p, j, idx, adapt, session, today]) // eslint-disable-line react-hooks/exhaustive-deps
+  const lastFb = !!(lastH?.fb && lastH.jid === j.id)
 
   return (
     <div className="screen">
@@ -71,31 +127,72 @@ export function Home({ nav }) {
         <div className="coach-bubble">{t(msg.key, msg.vars)}</div>
       </div>
 
-      {session ? (
-        <div className="hero-card">
-          <span className="glyph-bg"><Glyph id={j.icon} size={190} /></span>
-          <span className={`chip ${session.benchmark ? 'gold' : ''}`} style={{ alignSelf: 'flex-start' }}>
-            {session.benchmark ? t('badge_bench') : st.days.has(today) ? t('badge_next') : t('badge_today')}
-          </span>
-          <h2>{L(session.title)}{session.peakId && !session.benchmark ? ` · ${t('split_' + session.split)}` : ''}</h2>
-          <div className="meta">
-            <span><Clock size={14} /> {session.minutes} {t('min')}</span>
-            <span><Flame size={14} /> ~{session.kcal} {t('kcal')}</span>
-            <span><Dumbbell size={14} /> {t('noEquip')}</span>
+      <DayPager days={days} render={(d, k) => {
+        const dayLabel = k === 0 ? t('todayLong', { d: weekday(d.date, lang) }) : weekday(d.date, lang)
+        if (d.kind === 'done') return (
+          <div className="hero-card done-card">
+            <span className="chip ok" style={{ alignSelf: 'flex-start' }}><CheckCircle2 size={12} /> {dayLabel} · {t('doneChip')}</span>
+            {d.entries.map((h) => (
+              <div className="stack" key={h.id} style={{ gap: 10 }}>
+                <h2>{L(h.title)}{h.split ? ` · ${t('split_' + h.split)}` : ''}</h2>
+                <div className="metrics small-metrics">
+                  <div className="metric"><b>{clock(h.time || h.seconds || h.minutes * 60)}</b><span>{h.time ? t('time') : t('duration')}</span></div>
+                  <div className="metric"><b>{h.kcal}</b><span>{t('calories')}</span></div>
+                  <div className="metric"><b>{h.loops != null ? h.loops : h.reps || 0}</b><span>{h.loops != null ? t('roundsLbl') : t('totalReps')}</span></div>
+                  <div className="metric"><b>{h.rpe ? h.rpe + '/5' : '–'}</b><span>{t('effortLbl')}</span></div>
+                </div>
+                {h.moves?.length > 0 && <><h3 className="eyebrow">{t('whatYouDid')}</h3><MoveStrip moves={h.moves} /></>}
+                {h.fb ? <><h3 className="eyebrow">{t('nextTitle')}</h3><NextChanges fb={h.fb} /></> : null}
+                {h.rpe
+                  ? <button className="btn ghost plain-case" onClick={() => nav.go('recap', { hid: h.id })}>{t('seeRecap')}</button>
+                  : <button className="btn" onClick={() => nav.go('calibrate', { hid: h.id })}>{t('rateNow')}</button>}
+              </div>
+            ))}
           </div>
-          <ul className="summary">{sessionSummary(session, t, L).map((line) => <li key={line}>{line}</li>)}</ul>
-          <button className="btn lg" onClick={() => nav.go('session', { jid: j.id, idx })}><Play size={18} fill="currentColor" /> {t('startWorkout')}</button>
-          <button className="btn ghost plain-case" onClick={() => setAdapting(true)}>
-            <SlidersHorizontal size={16} /> {n ? `${t('adapted')} (${n})` : `${t('adaptBtn')} (${t('adaptHint')})`}
-          </button>
-        </div>
-      ) : (
-        <div className="hero-card">
-          <span className="chip gold" style={{ alignSelf: 'flex-start' }}><Trophy size={12} /> {L(j.name)}</span>
-          <h2>{t('journeyDone')}</h2>
-          <button className="btn lg" onClick={() => nav.tab('journeys')}>{t('chooseJourney')}</button>
-        </div>
-      )}
+        )
+        if (d.kind === 'rest') return (
+          <div className="hero-card rest-card">
+            <span className="chip plain" style={{ alignSelf: 'flex-start' }}><Moon size={12} /> {dayLabel}</span>
+            <h2>{t('restDay')}</h2>
+            <p className="muted">{t('restSub')}</p>
+            <div className="note">{L(TIPS[asDate(d.date).getDate() % TIPS.length])}</div>
+          </div>
+        )
+        if (d.kind === 'end') return (
+          <div className="hero-card">
+            <span className="chip gold" style={{ alignSelf: 'flex-start' }}><Trophy size={12} /> {L(j.name)}</span>
+            <h2>{k === 0 ? t('journeyDone') : t('journeyEnds')}</h2>
+            {k === 0 && <button className="btn lg" onClick={() => nav.tab('journeys')}>{t('chooseJourney')}</button>}
+          </div>
+        )
+        const ses = sessionsByIdx[d.idx]
+        const isNext = d.idx === idx
+        return (
+          <div className="hero-card">
+            {k === 0 && <span className="glyph-bg"><Glyph id={j.icon} size={190} /></span>}
+            <div className="row wrap" style={{ gap: 6 }}>
+              <span className={`chip ${ses.benchmark ? 'gold' : ''}`}>{k === 0 ? (ses.benchmark ? t('badge_bench') : t('badge_today')) : dayLabel}</span>
+              <span className="chip plain">{t('sessionOf', { n: d.idx + 1, t: total })}</span>
+            </div>
+            <h2>{L(ses.title)}{ses.peakId && !ses.benchmark ? ` · ${t('split_' + ses.split)}` : ''}</h2>
+            <div className="meta">
+              <span><Clock size={14} /> {ses.minutes} {t('min')}</span>
+              <span><Flame size={14} /> ~{ses.kcal} {t('kcal')}</span>
+              <span><Dumbbell size={14} /> {t('noEquip')}</span>
+            </div>
+            {isNext && lastFb && <div className="note ok small">{t('adjustedNote')}</div>}
+            <ul className="summary">{sessionSummary(ses, t, L).map((line) => <li key={line}>{line}</li>)}</ul>
+            <MoveStrip moves={mainMoves(ses)} />
+            {k === 0 && <>
+              <button className="btn lg" onClick={() => nav.go('session', { jid: j.id, idx })}><Play size={18} fill="currentColor" /> {t('startWorkout')}</button>
+              <button className="btn ghost plain-case" onClick={() => setAdapting(true)}>
+                <SlidersHorizontal size={16} /> {n ? `${t('adapted')} (${n})` : `${t('adaptBtn')} (${t('adaptHint')})`}
+              </button>
+            </>}
+            {k > 0 && isNext && <button className="btn ghost plain-case" onClick={() => nav.go('session', { jid: j.id, idx })}><Play size={16} /> {t('startEarly')}</button>}
+          </div>
+        )
+      }} />
 
       <button className="card tap" onClick={() => nav.go('journey', { jid: j.id })}>
         <div className="row between"><span className="eyebrow">{t('journey')}</span><ChevronRight size={18} className="muted" /></div>
@@ -300,25 +397,29 @@ export function Explore({ nav }) {
 // ---------------------------------------------------------------- Post-workout calibration
 export function Calibrate({ hid, nav }) {
   const { state, update } = useStore()
-  const { t } = useT()
+  const { t, L } = useT()
   const p = activeProfile(state)
   const h = p.history.find((x) => x.id === hid)
   const [rpe, setRpe] = useState(3)
   const [tech, setTech] = useState(1)
+  const [flags, setFlags] = useState({})
   if (!h) return null
+  const moves = (h.moves || []).slice(0, 10)
   const save = () => {
     update((s) => {
       const pp = activeProfile(s)
       const hh = pp.history.find((x) => x.id === hid)
       if (!hh || hh.rpe) return
       hh.rpe = rpe; hh.tech = tech
-      hh.fb = applyFeedback(pp, { trees: hh.trees || [] }, rpe, tech)
+      const flagged = moves.filter((m) => flags[m.ex]).map((m) => ({ ...m, how: flags[m.ex] }))
+      hh.flags = flagged.map((m) => ({ ex: m.ex, how: m.how }))
+      hh.fb = applyFeedback(pp, { trees: hh.trees || [] }, rpe, tech, flagged)
     })
     nav.swap('recap', { hid })
   }
   return (
     <div className="screen plain">
-      <h1 style={{ marginTop: 8 }}>{t('shabash')}</h1>
+      <div><h1 style={{ marginTop: 8 }}>{t('shabash')}</h1><p className="muted">{t('fbIntro')}</p></div>
       <div className="stack">
         <h2 className="h3">{t('rpeQ')}</h2>
         {[1, 2, 3, 4, 5].map((n) => (
@@ -332,8 +433,45 @@ export function Calibrate({ hid, nav }) {
         <h2 className="h3">{t('techQ')}</h2>
         <div className="seg">{[1, 2, 3].map((n) => <button key={n} className={tech === n ? 'on' : ''} onClick={() => setTech(n)}>{t('tech_' + n)}</button>)}</div>
       </div>
+      {moves.length > 0 && (
+        <div className="stack">
+          <div><h2 className="h3">{t('movesQ')}</h2><p className="muted small">{t('movesSub')}</p></div>
+          <div className="list">
+            {moves.map((m) => (
+              <div className="li" key={m.ex} style={{ gap: 10 }}>
+                <div className="figbox" style={{ width: 44, height: 44, flex: 'none' }}><Demo ex={EX[m.ex]} size={44} animate={false} /></div>
+                <b className="grow small" style={{ minWidth: 0 }}>{L(EX[m.ex].name)}</b>
+                <div className="seg mini">
+                  {[['', 'move_ok'], ['hard', 'move_hard'], ['pain', 'move_pain']].map(([how, key]) => (
+                    <button key={key} className={(flags[m.ex] || '') === how ? 'on' : ''} onClick={() => setFlags({ ...flags, [m.ex]: how })}>{t(key)}</button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="spacer" />
       <button className="btn lg" onClick={save}>{t('saveRecap')}</button>
+    </div>
+  )
+}
+
+// What the coach changed for the next workout, in plain words.
+export function NextChanges({ fb }) {
+  const { t, L } = useT()
+  if (!fb) return null
+  const lines = []
+  if (fb.change > 0) lines.push([TrendingUp, t('next_more', { n: fb.change })])
+  else if (fb.change < 0) lines.push([TrendingDown, t('next_less', { n: -fb.change })])
+  else lines.push([Check, t('next_same')])
+  if (fb.rest != null && fb.rest !== fb.restBefore) lines.push([Clock, t('next_rest', { n: fb.rest })])
+  for (const x of fb.promoted || []) lines.push([TrendingUp, t('promotedTo', { x: L(EX[x.ex].name) })])
+  for (const x of fb.regressed || []) lines.push([TrendingDown, t('movedTo', { x: L(EX[x.ex].name) })])
+  for (const x of fb.swapped || []) lines.push([Repeat, x.to ? t('next_swap', { x: L(EX[x.ex].name), y: L(EX[x.to].name), w: x.weeks }) : t('next_drop', { x: L(EX[x.ex].name), w: x.weeks })])
+  return (
+    <div className="stack" style={{ gap: 6 }}>
+      {lines.map(([Icon, text]) => <span className="banner blue" key={text} style={{ justifyContent: 'flex-start', textAlign: 'left' }}><Icon size={15} style={{ flex: 'none' }} /> {text}</span>)}
     </div>
   )
 }
@@ -378,8 +516,8 @@ export function Recap({ hid, nav }) {
           <span className="coach-face"><Sparkles size={18} /></span>
           <div className="coach-bubble stack" style={{ gap: 8 }}>
             <span>{t(fb.msg)}</span>
-            {fb.promoted.map((x) => <span className="banner blue" key={x.ex} style={{ justifyContent: 'flex-start' }}><TrendingUp size={15} /> {t('promotedTo', { x: L(EX[x.ex].name) })}</span>)}
-            {fb.regressed.map((x) => <span className="banner blue" key={x.ex} style={{ justifyContent: 'flex-start' }}><TrendingDown size={15} /> {t('movedTo', { x: L(EX[x.ex].name) })}</span>)}
+            <b className="small">{t('nextTitle')}</b>
+            <NextChanges fb={fb} />
           </div>
         </div>
       )}

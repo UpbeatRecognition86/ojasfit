@@ -10,3 +10,5 @@ demo-src/*.jpeg
 demo-src/*.webp
 firebase-debug.log
 firestore-debug.log
+.models/
+__pycache__/

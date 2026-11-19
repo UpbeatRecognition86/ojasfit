@@ -477,6 +477,36 @@ if (ACCOUNTS_ON) Object.assign(S, {
   resetAsk: ['Erase all profiles and history? This also clears them from your account.', 'सारी प्रोफ़ाइल और रिकॉर्ड मिटाएँ? ये आपके अकाउंट से भी मिट जाएँगे।'],
 })
 
+// Day planner and workout feedback
+Object.assign(S, {
+  todayShort: ['Today', 'आज'],
+  todayLong: ['Today · {d}', 'आज · {d}'],
+  doneChip: ['Done', 'हो गया'],
+  effortLbl: ['Effort', 'मेहनत'],
+  whatYouDid: ['What you did', 'आपने क्या किया'],
+  nextTitle: ['Your next workout', 'आपकी अगली कसरत'],
+  seeRecap: ['See recap and share', 'नतीजा देखें और शेयर करें'],
+  rateNow: ['Rate this workout', 'इस कसरत को रेट करें'],
+  restDay: ['Rest day', 'आराम का दिन'],
+  restSub: ['Muscles get stronger while you recover. A walk or light stretching is perfect today.', 'आराम के दौरान ही मांसपेशियाँ मज़बूत होती हैं। आज टहलना या हल्की स्ट्रेचिंग सबसे अच्छी है।'],
+  journeyEnds: ['Your journey ends here', 'आपकी यात्रा यहीं पूरी होती है'],
+  sessionOf: ['Session {n} of {t}', 'सेशन {n} / {t}'],
+  adjustedNote: ['Set from your last rating.', 'आपकी पिछली रेटिंग के हिसाब से तय किया गया।'],
+  startEarly: ['Start this one now', 'इसे अभी शुरू करें'],
+  fbIntro: ['Three quick answers. Your coach uses them to set your next workout.', 'तीन छोटे जवाब। इन्हीं से कोच आपकी अगली कसरत तय करता है।'],
+  movesQ: ['Did any move feel wrong?', 'क्या कोई कसरत ठीक नहीं लगी?'],
+  movesSub: ['Optional. Too hard: you get an easier version. Hurt: it is left out for a while.', 'वैकल्पिक। बहुत कठिन: आसान रूप मिलेगा। दर्द हुआ: कुछ समय के लिए हटा दी जाएगी।'],
+  move_ok: ['Fine', 'ठीक'],
+  move_hard: ['Too hard', 'कठिन'],
+  move_pain: ['Hurt', 'दर्द'],
+  next_more: ['About {n}% more reps and time per move', 'हर कसरत में लगभग {n}% ज़्यादा रेप्स और समय'],
+  next_less: ['About {n}% fewer reps and less time per move', 'हर कसरत में लगभग {n}% कम रेप्स और समय'],
+  next_same: ['Same amount of work: you are in the right zone', 'उतनी ही मेहनत: आप सही स्तर पर हैं'],
+  next_rest: ['{n} seconds of rest between moves', 'कसरतों के बीच {n} सेकंड आराम'],
+  next_swap: ['{x} is replaced by {y} for {w} weeks', '{w} हफ़्ते तक {x} की जगह {y}'],
+  next_drop: ['{x} is left out for {w} weeks', '{w} हफ़्ते तक {x} नहीं होगी'],
+})
+
 // For code outside React components.
 export const tr = (lang, key) => (S[key] ? S[key][lang === 'hi' ? 1 : 0] : key)
 

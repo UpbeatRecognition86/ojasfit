@@ -3,7 +3,7 @@ import { Sparkles, Map as MapIcon, Dumbbell, BarChart3, User } from 'lucide-reac
 import { useStore, activeProfile, stats, dayStr } from './lib/store.jsx'
 import { useT } from './lib/i18n.js'
 import { JMAP, PMAP, pbKey } from './data/journeys.js'
-import { totalSessions, daysPerWeek } from './lib/plan.js'
+import { totalSessions, daysPerWeek, mainMoves } from './lib/plan.js'
 import Onboarding from './screens/Onboarding.jsx'
 import { SignIn, Details, Splash } from './screens/Account.jsx'
 import { useAccount } from './lib/account.jsx'
@@ -65,7 +65,7 @@ export default function App() {
       const pb = !!pid && (!p.pbs[key] || time < p.pbs[key])
       if (pb) p.pbs[key] = time
       const points = minutes * 10 + (first ? 20 + Math.min(st.streak, 7) * 5 : 0) + (pb ? 50 : 0)
-      const entry = { id: hid, date: dayStr(), title: session.title, jid: isJourney ? tpl.id : null, pid, split: pid ? session.split : null, format: session.format, minutes, seconds, time, kcal, points, pb, reps, trees: session.trees }
+      const entry = { id: hid, date: dayStr(), title: session.title, jid: isJourney ? tpl.id : null, idx: isJourney ? index : null, pid, split: pid ? session.split : null, format: session.format, minutes, seconds, time, kcal, points, pb, reps, trees: session.trees, moves: mainMoves(session) }
       if (session.format === 'amrap') entry.loops = loops
       p.history.push(entry)
       p.points += points
