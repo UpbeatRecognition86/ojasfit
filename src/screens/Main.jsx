@@ -42,7 +42,7 @@ function planWeek(p, j, idx, total, today) {
 function MoveStrip({ moves }) {
   return (
     <div className="move-strip">
-      {moves.slice(0, 6).map((m) => <div className="figbox" key={m.ex}><Demo ex={EX[m.ex]} size={56} animate={false} /></div>)}
+      {moves.slice(0, 6).map((m) => <div className="figbox" key={m.ex}><Demo ex={EX[m.ex]} size={56} animate={false} thumb /></div>)}
     </div>
   )
 }
@@ -382,7 +382,7 @@ export function Explore({ nav }) {
       <div className="card"><div className="list">
         {list.map((e) => (
           <button className="li" key={e.id} onClick={() => setOpen(e)}>
-            <div className="figbox" style={{ width: 52, height: 52 }}><Demo ex={e} size={52} animate={false} /></div>
+            <div className="figbox" style={{ width: 52, height: 52 }}><Demo ex={e} size={52} animate={false} thumb /></div>
             <span className="grow"><b>{L(e.name)}</b><span className="muted small" style={{ display: 'block' }}>{t('area_' + e.area)}</span></span>
             <ChevronRight size={18} className="muted" />
           </button>
@@ -439,7 +439,7 @@ export function Calibrate({ hid, nav }) {
           <div className="list">
             {moves.map((m) => (
               <div className="li" key={m.ex} style={{ gap: 10 }}>
-                <div className="figbox" style={{ width: 44, height: 44, flex: 'none' }}><Demo ex={EX[m.ex]} size={44} animate={false} /></div>
+                <div className="figbox" style={{ width: 44, height: 44, flex: 'none' }}><Demo ex={EX[m.ex]} size={44} animate={false} thumb /></div>
                 <b className="grow small" style={{ minWidth: 0 }}>{L(EX[m.ex].name)}</b>
                 <div className="seg mini">
                   {[['', 'move_ok'], ['hard', 'move_hard'], ['pain', 'move_pain']].map(([how, key]) => (

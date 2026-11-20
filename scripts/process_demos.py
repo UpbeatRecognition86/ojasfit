@@ -11,7 +11,7 @@ Needs:  pip install onnxruntime mediapipe pillow numpy   (mediapipe needs libegl
 Models (downloaded into models_dir on first run, about 380 MB):
   u2net_human_seg.onnx, isnet-general-use.onnx from github.com/danielgatis/rembg releases,
   pose_landmarker_heavy.task from MediaPipe (to measure body size from limb lengths)
-Writes: public/demo/<id>-<n>.webp and src/data/demos.json ({ id: frame count })
+Writes: public/demo/<id>-<n>.webp (frames), <id>-t.webp (square thumbnail) and src/data/demos.json
 """
 import json, os, sys, urllib.request
 import numpy as np
@@ -169,7 +169,7 @@ def main():
         w = max((boxes[k][2] - boxes[k][0]) * rel[k] for k in frames)
         scale = min(1, FILL[0] * FLOOR / h, FILL[1] * S / w)
 
-        rendered = {}
+        rendered, boxes_out = {}, {}
         for k in frames:
             im, a = cut[k]
             x0, y0, x1, y1 = boxes[k]
@@ -183,12 +183,15 @@ def main():
                 d = ImageDraw.Draw(canvas)
                 ar = np.asarray(alpha) > 128
                 cols = np.where(ar.any(0))[0]
+                # A free-standing wall panel, so it never runs into the photo's edge (the app may
+                # show the photo inside a wider box, padded with the same background).
+                ww = round(0.07 * S)
                 if WALL[eid] == 'right':
                     wx = left + cols.max() + 2
-                    d.rectangle((wx, 0, S, FLOOR), fill=(33, 38, 72)); d.line((wx, 0, wx, FLOOR), fill=(52, 58, 100), width=3)
+                    d.rectangle((wx, round(0.08 * S), wx + ww, FLOOR), fill=(33, 38, 72)); d.line((wx, round(0.08 * S), wx, FLOOR), fill=(52, 58, 100), width=3)
                 else:
                     wx = left + cols.min() - 2
-                    d.rectangle((0, 0, wx, FLOOR), fill=(33, 38, 72)); d.line((wx, 0, wx, FLOOR), fill=(52, 58, 100), width=3)
+                    d.rectangle((wx - ww, round(0.08 * S), wx, FLOOR), fill=(33, 38, 72)); d.line((wx, round(0.08 * S), wx, FLOOR), fill=(52, 58, 100), width=3)
             # Soft shadow where the body meets the floor.
             ar = np.asarray(alpha) > 128
             low = np.where(ar[max(0, ph - max(6, ph // 12)):].any(0))[0]
@@ -202,17 +205,31 @@ def main():
                 canvas = Image.composite(Image.new('RGB', (S, S), (4, 5, 12)), canvas, sh)
             canvas.paste(person, (left, top), alpha)
             rendered[k] = canvas
+            boxes_out[k] = (left, top, left + pw, top + ph)
 
         for n, (src, fr, flip) in enumerate(seq):
             out = rendered[(src, fr)]
             if flip: out = ImageOps.mirror(out)
             out.save(os.path.join(OUT, f'{eid}-{n}.webp'), 'WEBP', quality=80, method=6)
+        # Thumbnail: the still frame (the end position), cropped square around the person.
+        src, fr, flip = seq[min(1, len(seq) - 1)]
+        x0, y0, x1, y1 = boxes_out[(src, fr)]
+        if flip: x0, x1 = S - x1, S - x0
+        y1 = max(y1, FLOOR + 10)
+        side = min(S, max(x1 - x0, y1 - y0) * 1.16 + 24)
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        bx = min(max(cx - side / 2, 0), S - side)
+        by = min(max(cy - side / 2, 0), S - side)
+        thumb = rendered[(src, fr)]
+        if flip: thumb = ImageOps.mirror(thumb)
+        thumb.crop((round(bx), round(by), round(bx + side), round(by + side))).resize((256, 256), Image.LANCZOS) \
+            .save(os.path.join(OUT, f'{eid}-t.webp'), 'WEBP', quality=82, method=6)
         manifest[eid] = len(seq)
         print(eid, len(seq), 'frames')
 
     for f in os.listdir(OUT):
         stem = os.path.splitext(f)[0]
-        if f.endswith('.webp') and (stem.rsplit('-', 1)[0] not in manifest or not stem.rsplit('-', 1)[1].isdigit()):
+        if f.endswith('.webp') and (stem.rsplit('-', 1)[0] not in manifest or not (stem.rsplit('-', 1)[1].isdigit() or stem.rsplit('-', 1)[1] == 't')):
             os.remove(os.path.join(OUT, f))
     old = os.path.join(OUT, 'manifest.json')
     if os.path.exists(old): os.remove(old)
