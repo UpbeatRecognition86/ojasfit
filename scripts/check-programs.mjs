@@ -1,7 +1,7 @@
 // The training gate: generates every session for every kind of athlete and checks it against
 // docs/TRAINING-STANDARDS.md. Exits non-zero on any violation. Usage: node scripts/check-programs.mjs
 import { JOURNEYS, PEAKS, SPLITS, DRILLS, splitRounds, phaseOf, recommend, JMAP } from '../src/data/journeys.js'
-import { EX, EXERCISES, TREES } from '../src/data/exercises.js'
+import { EX, EXERCISES, TREES, LADDER_CLEAN } from '../src/data/exercises.js'
 import { buildSession, totalSessions, applyFeedback } from '../src/lib/plan.js'
 
 const fails = new Map()
@@ -10,7 +10,11 @@ let n = 0
 
 // Data integrity
 for (const e of EXERCISES) for (const k of ['quiet', 'tight', 'sub']) if (e[k] && !EX[e[k]]) fail('exercise reference exists', `${e.id}.${k}`)
-for (const t of Object.values(TREES)) for (const id of t.steps) if (!EX[id]) fail('ladder move exists', id)
+for (const t of Object.values(TREES)) {
+  for (const id of t.steps) if (!EX[id]) fail('ladder move exists', id)
+  if (t.goals.length !== t.steps.length) fail('every rung has a goal', t.name.en)
+  t.steps.forEach((id, k) => { if (EX[id] && !(t.goals[k] > EX[id].base)) fail('a rung goal is above its starting amount', id) })
+}
 for (const p of PEAKS) { for (const [id] of p.items) if (!EX[id]) fail('peak move exists', `${p.id}:${id}`); const r = SPLITS.map((s) => splitRounds(p, s)); if (!(r[0] < r[1] && r[1] < r[2])) fail('splits increase', `${p.id} ${r}`) }
 for (const [id, d] of Object.entries(DRILLS)) if (d.levels.length !== 3) fail('drill has 3 levels', id)
 for (const j of JOURNEYS) { const ph = Array.from({ length: j.weeks }, (_, w) => phaseOf(w, j.weeks).key); if (ph[0] !== 'calibrate' || ph[j.weeks - 2] !== 'deload' || ph[j.weeks - 1] !== 'peak') fail('phases: calibrate first, deload before peak', j.id) }
@@ -62,9 +66,16 @@ for (const pk of PEAKS) for (const sp of SPLITS) {
 // Feedback rules
 { const p = { level: 'inter', volume: 1 }; let prev = 1
   for (const [r, t] of [[1, 1], [1, 1], [5, 3], [5, 3], [5, 3], [5, 3], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1]]) { applyFeedback(p, { trees: ['push'] }, r, t); const d = p.volume / prev; if (d > 1.3001 || d < 0.6999 || p.volume < 0.5 || p.volume > 2) fail('volume change within limits', `${r}/${t} → ${p.volume.toFixed(2)}`); prev = p.volume }
-  const q = { level: 'inter', volume: 1 }; const up = [1, 2, 3].map(() => applyFeedback(q, { trees: ['push'] }, 3, 1).promoted.length)
-  if (up.join() !== '0,0,1') fail('promotion after exactly three clean sessions', up.join())
-  if (!applyFeedback(q, { trees: ['push'] }, 3, 3).regressed.length) fail('broken form moves down a rung', 'no regression') }
+  // inter starts on push-ups (goal 12): below the goal never counts; at the goal, LADDER_CLEAN clean workouts move up.
+  const q = { level: 'inter', volume: 1 }
+  const below = [1, 2, 3].map(() => applyFeedback(q, { trees: ['push'] }, 3, 1, [], { pushup: 10 }).promoted.length)
+  if (below.join() !== '0,0,0') fail('no promotion below the rung goal', below.join())
+  const sloppy = applyFeedback(q, { trees: ['push'] }, 3, 2, [], { pushup: 12 }).promoted.length
+  const up = Array.from({ length: LADDER_CLEAN }, () => applyFeedback(q, { trees: ['push'] }, 3, 1, [], { pushup: 12 }).promoted.length)
+  if (sloppy || up.join() !== [...Array(LADDER_CLEAN - 1).fill(0), 1].join()) fail('promotion after exactly LADDER_CLEAN clean workouts at the goal', `${sloppy} ${up}`)
+  if (!applyFeedback(q, { trees: ['push'] }, 3, 3).regressed.length) fail('broken form moves down a rung', 'no regression')
+  const r = { level: 'inter', volume: 1 }
+  if (!applyFeedback(r, { trees: [] }, 3, 1, [{ ex: 'pushup', how: 'hard' }]).regressed.length) fail('a move marked too hard moves its ladder down', 'pushup') }
 for (const goal of ['lose', 'strong', 'active']) for (const level of ['beginner', 'inter', 'advanced']) if (!JMAP[recommend({ goal, level })]) fail('recommendation exists', `${goal}/${level}`)
 
 if (fails.size) {
