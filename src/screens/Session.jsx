@@ -21,28 +21,28 @@ export function Amount({ step }) {
 }
 
 // The demonstration: a looping video when one exists for the move, otherwise the drawn figure.
-export function Demo({ ex, size, animate = true }) {
+export function Demo({ ex, size, animate = true, thumb = false }) {
   if (hasVideo(ex.id)) return <video src={`./video/${ex.id}.mp4`} autoPlay loop muted playsInline />
-  if (demoCount(ex.id)) return <Photos id={ex.id} frames={demoCount(ex.id)} animate={animate} />
+  if (demoCount(ex.id)) return <Photos key={ex.id} id={ex.id} frames={demoCount(ex.id)} animate={animate} thumb={thumb} />
   return <Figure pose={ex.pose} animate={animate} size={size} />
 }
 
 // Two photos, start and end of the move, cross-fading in the rhythm of a rep.
 // Steps through the frames (start, end, and the other side for alternating moves), crossfading.
 // A still picture shows the end position, which says the most about the move.
-function Photos({ id, frames, animate }) {
+function Photos({ id, frames, animate, thumb }) {
   const [i, setI] = useState(0)
   useEffect(() => {
-    setI(0)
     if (!animate || frames < 2) return
     const t = setInterval(() => setI((x) => (x + 1) % frames), 1100)
     return () => clearInterval(t)
   }, [animate, frames, id])
-  const shown = animate ? i : Math.min(1, frames - 1)
+  // Thumbnails are a square crop of the end position, framed on the person.
+  if (thumb) return <div className="photos thumb"><img src={`./demo/${id}-t.webp`} alt="" draggable="false" /></div>
   return (
     <div className="photos">
       {Array.from({ length: frames }, (_, n) => (
-        <img key={n} src={`./demo/${id}-${n}.webp`} alt="" draggable="false" loading={n === 0 ? 'eager' : 'lazy'} style={{ opacity: n === shown || n === 0 ? 1 : 0, zIndex: n === shown ? 1 : 0 }} />
+        <img key={n} src={`./demo/${id}-${n}.webp`} alt="" draggable="false" loading={n === 0 ? 'eager' : 'lazy'} style={{ opacity: n === i || n === 0 ? 1 : 0, zIndex: n === i ? 1 : 0 }} />
       ))}
     </div>
   )
@@ -194,7 +194,7 @@ export default function Session({ tpl, index, split: split0, onBack, onFinish })
           <div className="list">
             {(sec === 'drill' ? drillRows(steps) : steps).map((s, k) => (
               <button className="li" key={k} onClick={() => setOpen(EX[s.ex])}>
-                <div className="figbox" style={{ width: 54, height: 54, position: 'relative' }}><Demo ex={EX[s.ex]} size={54} animate={false} /></div>
+                <div className="figbox" style={{ width: 54, height: 54, position: 'relative' }}><Demo ex={EX[s.ex]} size={54} animate={false} thumb /></div>
                 <div className="grow">
                   <b>{L(EX[s.ex].name)}</b>
                   <div className="muted small">{s.range ? `${s.range} ${t('times')}` : <Amount step={s} />}{s.type === 'emom' ? ` / ${t('min')}` : ''}</div>
