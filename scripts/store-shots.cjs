@@ -1,4 +1,6 @@
-// Generates Play Store graphics from the running app (npx vite preview --port 4174):
+// Generates Play Store graphics from the running app. Sign-in is required, so run it against the
+// Firebase emulators: npm run emulators, then
+//   VITE_FIREBASE_EMULATOR=localhost npx vite build && npx vite preview --port 4174
 //   store/screenshots/<lang>/<n>.jpg   1080×1920 captioned phone screenshots, en + hi
 //   store/feature-graphic.png          1024×500 banner
 // Usage: node scripts/store-shots.cjs
@@ -12,20 +14,20 @@ const CSS = fs.readFileSync(path.join(__dirname, '..', 'dist', 'index.html'), 'u
 
 const CAPTIONS = {
   en: [
-    ['Your coach plans every session', 'Built around your goal and your week'],
+    ['Your coach plans your week', 'Every day, built around your goal'],
     ['Train with a giant rep counter', 'Clear cues, timers and voice coaching'],
     ['Adapt any session to your day', 'Quiet mode · small space · 15 minutes · sore'],
-    ['Rate it. The coach adjusts', 'Effort and form set your next session'],
+    ['Rate it. The coach adjusts', 'Effort, form and each move set your next workout'],
     ['Share your result', 'One tap to WhatsApp or Instagram'],
-    ['Climb the skill ladders', 'From wall push-ups to pistol squats'],
+    ['Six skill ladders', 'A clear goal for every move'],
   ],
   hi: [
-    ['आपका कोच हर सेशन बनाता है', 'आपके लक्ष्य और हफ़्ते के हिसाब से'],
+    ['आपका कोच पूरा हफ़्ता बनाता है', 'हर दिन, आपके लक्ष्य के हिसाब से'],
     ['बड़े रेप काउंटर के साथ ट्रेनिंग', 'साफ़ निर्देश, टाइमर और आवाज़ वाला कोच'],
     ['हर सेशन को अपने दिन जैसा बनाइए', 'शांत मोड · कम जगह · 15 मिनट · दर्द'],
-    ['बताइए कैसा रहा। कोच बदलेगा', 'मेहनत और तरीक़े से अगला सेशन तय होता है'],
+    ['बताइए कैसा रहा। कोच बदलेगा', 'मेहनत, तरीक़ा और हर कसरत से अगला सेशन तय'],
     ['अपना नतीजा शेयर कीजिए', 'एक टैप में व्हाट्सऐप या इंस्टाग्राम'],
-    ['स्किल की सीढ़ियाँ चढ़िए', 'दीवार पुश-अप से पिस्टल स्क्वैट तक'],
+    ['स्किल की छह सीढ़ियाँ', 'हर कसरत का साफ़ लक्ष्य'],
   ],
 }
 
@@ -51,10 +53,20 @@ async function captureRaw(browser, lang) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 760 }, deviceScaleFactor: 2 })
   const p = await ctx.newPage()
   await p.emulateMedia({ reducedMotion: 'reduce' })
-  await p.clock.install()
   await p.goto(BASE)
   await p.evaluate((s) => { localStorage.kasrat_v1 = JSON.stringify(s) }, seed(lang))
   await p.reload()
+  // Sign up (the seeded progress on this phone moves into the new account), then the details step.
+  await p.locator('button:has(svg.lucide-mail)').click()
+  await p.locator('input[type=email]').fill(`shots-${lang}-${Date.now()}@example.com`)
+  await p.locator('input[type=password]').fill('screenshots1')
+  await p.locator('.btn').last().click()
+  await p.locator('input[autocomplete="name"]').waitFor()
+  await p.locator('input[autocomplete="name"]').fill(lang === 'hi' ? 'आयुष' : 'Ayush')
+  await p.locator('input[autocomplete="tel-national"]').fill('9812345678')
+  await p.locator('.btn').last().click()
+  await p.locator('.tabbar').waitFor()
+  await p.clock.install()
   await p.clock.runFor(800)
   const shots = []
   // Screen and switch transitions run on real time, so freeze them before each capture.
@@ -64,7 +76,7 @@ async function captureRaw(browser, lang) {
 
   await snap() // 1 dashboard
   // 2 player: start today's session and stop on the first rep-counted move of the workout
-  await p.locator('.hero-card .btn.lg').click(); await p.clock.runFor(500)
+  await p.locator('.hero-card .btn.lg').first().click(); await p.clock.runFor(500)
   await p.locator('.sticky-cta .btn').click(); await p.clock.runFor(5600)
   for (let g = 0; g < 80; g++) {
     if ((await p.locator('.player.work .repnum').count()) && !(await p.locator('.repnum small').count()) && (await p.locator('.hud .grow').innerText()).match(/\d/)) break
@@ -75,7 +87,7 @@ async function captureRaw(browser, lang) {
   await p.locator('.hud .iconbtn').click(); await p.clock.runFor(300)
   await p.locator('.sheet .btn.ghost').click(); await p.clock.runFor(400)
   await p.goBack(); await p.clock.runFor(500)
-  await p.locator('.hero-card .btn.ghost').click(); await p.clock.runFor(400)
+  await p.locator('.hero-card .btn.ghost').first().click(); await p.clock.runFor(400)
   await p.locator('.sheet .opt').first().click()
   await p.locator('.sheet .seg button').nth(2).click()
   await p.locator('.sheet .pill').first().click()
@@ -95,7 +107,7 @@ async function captureRaw(browser, lang) {
   await p.locator('.btn.ghost').last().click(); await p.clock.runFor(500)
   // 6 skill ladders
   await tab(2); await p.clock.runFor(300)
-  await p.locator('.card.tap').first().click()
+  await p.locator('.ladder-card button').first().click()
   await snap()
   await ctx.close()
   return shots
