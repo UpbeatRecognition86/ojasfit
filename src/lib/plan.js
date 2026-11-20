@@ -7,9 +7,19 @@ export const tiersOf = (p) => ({ ...START_TIERS[p.level || 'beginner'], ...(p.ti
 export const daysPerWeek = (tpl, profile) => clamp(profile?.days || 3, 2, 6)
 export const totalSessions = (j, profile) => j.weeks * daysPerWeek(j, profile)
 
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+const plusDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+
+// Moves the athlete flagged after a workout, swapped for an easier one until the date given.
+export const activeSwaps = (profile) => Object.keys(profile.swaps || {}).filter((id) => profile.swaps[id] >= today())
+
+// Which weekdays (Monday = 0) a week of N training days uses, spread to leave recovery days.
+export const TRAIN_DAYS = { 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 4, 5], 6: [0, 1, 2, 3, 4, 5] }
+
 // Today's adaptations plus the athlete's standing settings.
 export function contextFor(profile, adapt = {}, tpl = {}) {
   return {
+    skip: activeSwaps(profile),
     quiet: !!(adapt.quiet || profile.quiet || tpl.quiet),
     tight: !!adapt.tight,
     time: adapt.time || 0, // 0 = full session, 20 or 15 = minutes
@@ -33,6 +43,7 @@ export function resolve(id, ctx) {
     if (ctx.quiet && e.jump) id = e.quiet || e.sub
     else if (ctx.tight && e.wide) id = e.tight || e.sub
     else if (e.stress.some((s) => ctx.avoid.includes(s))) id = e.sub
+    else if (ctx.skip?.includes(id)) id = e.sub
     else return id
   }
   return null
@@ -103,7 +114,7 @@ export function buildSession(tpl, index, profile, adapt = {}, opts = {}) {
     let amt = extra.amount
     if (amt == null) amt = fixedAmt ? (id === wanted ? fixedAmt : amount(e, fixedAmt / EX[wanted].base)) : amount(e, section === 'core' ? factor : 1)
     else if (id !== wanted) amt = amount(e, (extra.amount / EX[wanted].base))
-    const st = { ex: id, type: e.type, section, rest: 0, swapped: id !== wanted ? wanted : null, ...extra, amount: amt }
+    const st = { ex: id, type: e.type, section, rest: 0, swapped: id !== wanted ? wanted : null, tree: id === wanted ? tree : null, ...extra, amount: amt }
     delete st.keep
     steps.push(st)
     return st
@@ -261,17 +272,43 @@ export function buildSession(tpl, index, profile, adapt = {}, opts = {}) {
 const RPE_DELTA = { 1: 1.15, 2: 1.08, 3: 1.02, 4: 0.95, 5: 0.85 }
 const TECH_DELTA = { 1: 1, 2: 0.95, 3: 0.8 }
 
+// The main moves of a session (not warm-up or cool-down), once each: what the athlete can rate.
+export function mainMoves(session) {
+  const seen = new Set()
+  return session.steps.filter((x) => !['warm', 'cool'].includes(x.section) && !seen.has(x.ex) && seen.add(x.ex)).map((x) => ({ ex: x.ex, tree: x.tree || null }))
+}
+
 // Post-workout calibration. Mutates the profile and returns what changed, for the recap.
-export function applyFeedback(profile, session, rpe, tech) {
+// moves: [{ ex, tree, how: 'hard' | 'pain' }] for the moves the athlete flagged.
+export function applyFeedback(profile, session, rpe, tech, moves = []) {
+  const before = profile.volume || 1
   const delta = clamp((RPE_DELTA[rpe] || 1) * (TECH_DELTA[tech] || 1), 0.7, 1.3)
-  profile.volume = clamp((profile.volume || 1) * delta, 0.5, 2)
+  profile.volume = clamp(before * delta, 0.5, 2)
+  const restBefore = profile.rest || 45
   profile.rest = rpe >= 4 ? 60 : rpe <= 2 ? 30 : 45
   const tiers = tiersOf(profile)
   const streaks = { ...(profile.streaks || {}) }
+  const swaps = { ...(profile.swaps || {}) }
   const promoted = []
   const regressed = []
+  const swapped = []
   const regress = tech === 3 || rpe === 5
+  const flaggedTrees = new Set()
+  // A move that felt too hard steps down its ladder, or is swapped for an easier move for two weeks.
+  // A move that hurt is left out for four weeks.
+  for (const m of moves) {
+    if (m.how === 'hard' && m.tree && TREES[m.tree]) {
+      flaggedTrees.add(m.tree)
+      streaks[m.tree] = 0
+      if (tiers[m.tree] > 0) { tiers[m.tree] -= 1; regressed.push({ tree: m.tree, ex: TREES[m.tree].steps[tiers[m.tree]] }) }
+    } else if (m.how === 'hard' || m.how === 'pain') {
+      const weeks = m.how === 'pain' ? 4 : 2
+      swaps[m.ex] = plusDays(weeks * 7)
+      swapped.push({ ex: m.ex, to: EX[m.ex]?.sub || null, weeks, how: m.how })
+    }
+  }
   for (const tree of session.trees || []) {
+    if (flaggedTrees.has(tree)) continue
     const steps = TREES[tree].steps
     if (regress) {
       streaks[tree] = 0
@@ -283,8 +320,10 @@ export function applyFeedback(profile, session, rpe, tech) {
   }
   profile.tiers = tiers
   profile.streaks = streaks
+  profile.swaps = swaps
   const msg = regress ? 'fb_regress' : rpe <= 2 ? 'fb_up' : rpe === 3 && tech === 1 ? 'fb_sweet' : rpe >= 4 || tech >= 2 ? 'fb_down' : 'fb_ok'
-  return { delta, msg, promoted, regressed, rest: profile.rest }
+  const change = Math.round((profile.volume / before - 1) * 100)
+  return { delta, msg, promoted, regressed, swapped, rest: profile.rest, restBefore, change }
 }
 
 export { JMAP }
