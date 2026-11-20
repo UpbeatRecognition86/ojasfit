@@ -82,13 +82,20 @@ export const EX = Object.fromEntries(list.map((e) => [e.id, e]))
 
 // Skill ladders: each rung is harder than the one before. The Coach places every athlete on a
 // rung per ladder, moves them up after clean sessions and down when technique breaks.
+// Skill ladders, easiest rung first. goal: the clean amount per set (reps, or seconds for holds)
+// that unlocks the next rung once it is reached in two workouts rated with strict form.
+const L = (en, hi, rungs) => ({ name: { en, hi }, steps: rungs.map((r) => r[0]), goals: rungs.map((r) => r[1]) })
 export const TREES = {
-  push: { name: { en: 'Push', hi: 'पुश' }, steps: ['wall_pushup', 'incline_pushup', 'knee_pushup', 'pushup', 'diamond_pushup', 'decline_pushup'] },
-  legs: { name: { en: 'Legs', hi: 'पैर' }, steps: ['chair_sit_stand', 'squat', 'lunge', 'jump_squat', 'cossack_squat', 'pistol_squat'] },
-  core: { name: { en: 'Core', hi: 'कोर' }, steps: ['crunch', 'leg_raise', 'plank', 'jackknife', 'hollow_hold', 'v_up'] },
+  push: L('Push', 'पुश', [['wall_pushup', 14], ['incline_pushup', 12], ['knee_pushup', 12], ['pushup', 12], ['diamond_pushup', 10], ['decline_pushup', 10]]),
+  shoulders: L('Shoulders', 'कंधे', [['downdog', 35], ['shoulder_taps', 20], ['pike_pushup', 8], ['hindu_pushup', 10]]),
+  legs: L('Legs', 'पैर', [['chair_sit_stand', 14], ['squat', 18], ['tempo_squat', 10], ['split_squat', 14], ['cossack_squat', 12], ['pistol_squat', 7]]),
+  hips: L('Hips & back', 'कूल्हे और पीठ', [['glute_bridge', 18], ['bird_dog', 14], ['superman', 14], ['hamstring_walkout', 8]]),
+  core: L('Core', 'कोर', [['crunch', 18], ['plank', 35], ['leg_raise', 12], ['hollow_hold', 25], ['jackknife', 12], ['v_up', 10]]),
+  engine: L('Engine', 'दम', [['march', 50], ['knee_drive', 24], ['step_jacks', 35], ['high_knees', 35], ['mountain_climbers', 35], ['burpee', 10]]),
 }
+export const LADDER_CLEAN = 2 // clean workouts at the goal needed to move up
 export const START_TIERS = {
-  beginner: { push: 1, legs: 1, core: 0 },
-  inter: { push: 3, legs: 2, core: 2 },
-  advanced: { push: 4, legs: 3, core: 3 },
+  beginner: { push: 1, shoulders: 0, legs: 1, hips: 0, core: 0, engine: 1 },
+  inter: { push: 3, shoulders: 1, legs: 2, hips: 1, core: 2, engine: 3 },
+  advanced: { push: 4, shoulders: 2, legs: 3, hips: 2, core: 3, engine: 4 },
 }

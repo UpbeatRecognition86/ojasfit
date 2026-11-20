@@ -38,7 +38,7 @@ FOUR WAYS TO TRAIN
 • EMOM: a set every minute, rest with what is left
 
 CLIMB THE SKILL LADDERS
-Push, legs and core each have six levels, from wall push-ups to decline push-ups, from assisted squats to pistol squats. Three clean sessions in a row move you up.
+Six ladders: push, shoulders, legs, hips and back, core and stamina. From wall push-ups to decline push-ups, from assisted squats to pistol squats. Every move has a clear goal; reach it with strict form in two workouts to unlock the next one.
 
 PEAKS: OUR SIGNATURE WORKOUTS
 Fifteen workouts named after India's mountains, from Nilgiri to Kanchenjunga, done against the clock. The recipe never changes, so a faster time is real progress. Climb each one three ways: Base Camp, Ridge or Summit, each with its own best time.
@@ -108,7 +108,7 @@ OjasFit आपका अपना बॉडीवेट कोच है। न 
 • EMOM: हर मिनट एक सेट, बचा समय आराम
 
 स्किल की सीढ़ियाँ चढ़िए
-पुश, पैर और कोर की छह-छह पायदान हैं: दीवार पुश-अप से डिक्लाइन पुश-अप तक, कुर्सी स्क्वैट से पिस्टल स्क्वैट तक। लगातार तीन साफ़ सेशन आपको ऊपर ले जाते हैं।
+छह सीढ़ियाँ: पुश, कंधे, पैर, कूल्हे और पीठ, कोर और दम। दीवार पुश-अप से डिक्लाइन पुश-अप तक, कुर्सी स्क्वैट से पिस्टल स्क्वैट तक। हर कसरत का साफ़ लक्ष्य है; दो कसरतों में सख़्त तरीक़े से पूरा करें, अगली खुल जाएगी।
 
 चोटियाँ: हमारी ख़ास कसरतें
 भारत के पहाड़ों के नाम पर पंद्रह कसरतें, नीलगिरि से कंचनजंगा तक, घड़ी के ख़िलाफ़। कसरत कभी नहीं बदलती, इसलिए कम समय ही असली तरक़्क़ी है। हर चोटी तीन तरह से चढ़िए: बेस कैंप, रिज या शिखर, और हर एक का अपना सर्वश्रेष्ठ समय।

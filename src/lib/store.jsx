@@ -23,6 +23,14 @@ export function migrate(s) {
     if ((p.limits || []).includes('impact')) p.quiet = true
     p.limits = [...new Set((p.limits || []).map((l) => OLD_LIMITS[l]).filter(Boolean))]
     if (!['lose', 'strong', 'active'].includes(p.goal)) p.goal = 'active'
+    // Ladders v2 (six ladders, reordered legs and core): keep each person on the same move.
+    if ((p.ladders || 1) < 2 && p.tiers) {
+      const oldCore = ['crunch', 'leg_raise', 'plank', 'jackknife', 'hollow_hold', 'v_up']
+      const newCore = ['crunch', 'plank', 'leg_raise', 'hollow_hold', 'jackknife', 'v_up']
+      if (p.tiers.core != null) p.tiers.core = newCore.indexOf(oldCore[p.tiers.core] ?? 'crunch')
+      p.mastery = {}
+    }
+    p.ladders = 2
     p.tiers = { ...START_TIERS[p.level || 'beginner'], ...(p.tiers || {}) }
     p.volume = p.volume || p.difficulty || 1
     p.rest = p.rest || 45
@@ -132,7 +140,7 @@ export function newProfile(data) {
     id: Math.random().toString(36).slice(2, 10),
     name: '', goal: 'active', level: 'beginner', limits: [], quiet: false, kg: null, cm: null, days: 3,
     journeyId: null, progress: {}, completed: [], history: [], weights: [], pbs: {}, points: 0,
-    volume: 1, rest: 45, streaks: {}, adapt: null,
+    volume: 1, rest: 45, streaks: {}, mastery: {}, best: {}, ladders: 2, adapt: null,
     ...data,
   }
   p.tiers = { ...START_TIERS[p.level], ...(data.tiers || {}) }

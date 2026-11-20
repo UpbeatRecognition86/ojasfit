@@ -35,8 +35,12 @@ Suggested length at onboarding: beginner 30, some experience 45, regular 60.
 ## Progression
 
 1. Volume changes by at most 30% from one session to the next, and stays within 0.5–2.0×.
-2. Promotion up a skill ladder needs three clean sessions in a row; broken form or an
-   exhausting session moves the athlete down one rung.
+2. There are six skill ladders (push, shoulders, legs, hips & back, core, engine). Every rung
+   has a goal: a clean amount per set above the move's starting amount. A ladder moves up
+   after two workouts rated strict form and effort 3/5 or less in which its current move
+   reached the goal in a set. Sets below the goal or with slipping form never count.
+   Broken form, an exhausting (5/5) session, or marking the move "too hard" moves the athlete
+   down one rung.
 3. Each journey has a deload week before its final week.
 
 ## Signature content

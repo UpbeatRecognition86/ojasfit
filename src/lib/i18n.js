@@ -507,6 +507,20 @@ Object.assign(S, {
   next_drop: ['{x} is left out for {w} weeks', '{w} हफ़्ते तक {x} नहीं होगी'],
 })
 
+// Skill ladders
+Object.assign(S, {
+  skillsSub: ['Six ladders, easiest move first. Reach the goal with strict form in two workouts to unlock the next move.', 'छह सीढ़ियाँ, सबसे आसान कसरत पहले। दो कसरतों में सख़्त तरीक़े से लक्ष्य पूरा करें, अगली कसरत खुल जाएगी।'],
+  goalReps: ['{n} reps', '{n} रेप्स'],
+  goalSec: ['{n} s', '{n} सेकंड'],
+  ladderGoal: ['Goal: {x} in one set', 'लक्ष्य: एक सेट में {x}'],
+  ladderBest: ['Best: {x}', 'सर्वश्रेष्ठ: {x}'],
+  ladderNoBest: ['Not tried yet', 'अभी नहीं की'],
+  ladderClean: ['{c} of {n} clean workouts', '{n} में से {c} साफ़ कसरतें'],
+  ladderNext: ['Next: {x}', 'अगली: {x}'],
+  ladderTop: ['Top of this ladder. Keep it strong.', 'इस सीढ़ी की चोटी पर हैं। ताक़त बनाए रखें।'],
+  ladderStep: ['{x}: goal reached ({c} of {n} clean workouts to move up)', '{x}: लक्ष्य पूरा ({n} में से {c} साफ़ कसरतें, फिर अगली)'],
+})
+
 // For code outside React components.
 export const tr = (lang, key) => (S[key] ? S[key][lang === 'hi' ? 1 : 0] : key)
 

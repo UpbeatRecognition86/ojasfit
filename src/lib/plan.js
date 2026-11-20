@@ -1,4 +1,4 @@
-import { EX, TREES, START_TIERS } from '../data/exercises.js'
+import { EX, TREES, START_TIERS, LADDER_CLEAN } from '../data/exercises.js'
 import { JMAP, PMAP, PEAKS, DRILLS, SPLITS, splitRounds, phaseOf } from '../data/journeys.js'
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
@@ -109,7 +109,8 @@ export function buildSession(tpl, index, profile, adapt = {}, opts = {}) {
     if (!id) return null
     const e = EX[id]
     const prev = steps[steps.length - 1]
-    if (prev && prev.ex === id && prev.section === section && prev.round === extra.round && prev.block === extra.block && !extra.keep) return null
+    // Never the same move twice in one round (two ladder slots can land on the same move).
+    if (!extra.keep && steps.some((x) => x.ex === id && x.section === section && x.round === extra.round && x.block === extra.block && (section === 'core' || x === prev))) return null
     if (tree && id === wanted) trees.add(tree)
     let amt = extra.amount
     if (amt == null) amt = fixedAmt ? (id === wanted ? fixedAmt : amount(e, fixedAmt / EX[wanted].base)) : amount(e, section === 'core' ? factor : 1)
@@ -136,7 +137,11 @@ export function buildSession(tpl, index, profile, adapt = {}, opts = {}) {
   let skill = null
   let drill = null
   if (full && !isBench) {
-    const tree = ['push', 'legs', 'core'][week % 3]
+    // Practise the ladder closest to its next rung; rotate through the ladders on ties.
+    const names = Object.keys(TREES)
+    const ready = (tr) => (profile.mastery?.[tr]?.clean || 0) + Math.min(1, (profile.best?.[TREES[tr].steps[tiers[tr]]] || 0) / TREES[tr].goals[tiers[tr]])
+    const open = names.filter((tr) => { const n = TREES[tr].steps[tiers[tr] + 1]; return n && resolve(n, ctx) === n })
+    const tree = open.sort((a, b) => ready(b) - ready(a) || ((names.indexOf(a) - week + 60) % names.length) - ((names.indexOf(b) - week + 60) % names.length))[0] || names[week % names.length]
     const nextId = TREES[tree].steps[tiers[tree] + 1]
     if (day === 0 && week >= 1 && phase.key !== 'deload' && nextId && resolve(nextId, ctx) === nextId) {
       const e = EX[nextId]
@@ -278,52 +283,74 @@ export function mainMoves(session) {
   return session.steps.filter((x) => !['warm', 'cool'].includes(x.section) && !seen.has(x.ex) && seen.add(x.ex)).map((x) => ({ ex: x.ex, tree: x.tree || null }))
 }
 
+// Where each ladder stands: current rung, its goal, best clean set so far, clean workouts at the goal.
+export function ladderStatus(profile) {
+  const tiers = tiersOf(profile)
+  return Object.fromEntries(Object.entries(TREES).map(([tr, t]) => {
+    const k = tiers[tr]
+    const ex = t.steps[k]
+    return [tr, { tier: k, ex, goal: t.goals[k], best: profile.best?.[ex] || 0, clean: profile.mastery?.[tr]?.clean || 0, next: t.steps[k + 1] || null }]
+  }))
+}
+
 // Post-workout calibration. Mutates the profile and returns what changed, for the recap.
 // moves: [{ ex, tree, how: 'hard' | 'pain' }] for the moves the athlete flagged.
-export function applyFeedback(profile, session, rpe, tech, moves = []) {
+// done: { exerciseId: largest amount completed in one set } for the main part of the workout.
+// A ladder moves up after LADDER_CLEAN workouts rated strict form and effort 3 or less in which
+// its current move reached the rung's goal. It moves down when form broke, effort was 5/5, or
+// the move was marked too hard.
+export function applyFeedback(profile, session, rpe, tech, moves = [], done = {}) {
   const before = profile.volume || 1
   const delta = clamp((RPE_DELTA[rpe] || 1) * (TECH_DELTA[tech] || 1), 0.7, 1.3)
   profile.volume = clamp(before * delta, 0.5, 2)
   const restBefore = profile.rest || 45
   profile.rest = rpe >= 4 ? 60 : rpe <= 2 ? 30 : 45
   const tiers = tiersOf(profile)
-  const streaks = { ...(profile.streaks || {}) }
+  const mastery = JSON.parse(JSON.stringify(profile.mastery || {}))
+  const best = { ...(profile.best || {}) }
   const swaps = { ...(profile.swaps || {}) }
   const promoted = []
   const regressed = []
   const swapped = []
+  const progress = []
+  const clean = tech === 1 && rpe <= 3
   const regress = tech === 3 || rpe === 5
   const flaggedTrees = new Set()
-  // A move that felt too hard steps down its ladder, or is swapped for an easier move for two weeks.
-  // A move that hurt is left out for four weeks.
+  const down = (tr) => { mastery[tr] = { clean: 0 }; if (tiers[tr] > 0) { tiers[tr] -= 1; regressed.push({ tree: tr, ex: TREES[tr].steps[tiers[tr]] }) } }
   for (const m of moves) {
-    if (m.how === 'hard' && m.tree && TREES[m.tree]) {
-      flaggedTrees.add(m.tree)
-      streaks[m.tree] = 0
-      if (tiers[m.tree] > 0) { tiers[m.tree] -= 1; regressed.push({ tree: m.tree, ex: TREES[m.tree].steps[tiers[m.tree]] }) }
-    } else if (m.how === 'hard' || m.how === 'pain') {
+    const tr = m.tree || Object.keys(TREES).find((x) => TREES[x].steps[tiers[x]] === m.ex)
+    if (m.how === 'hard' && tr && TREES[tr]) { flaggedTrees.add(tr); down(tr) }
+    else if (m.how === 'hard' || m.how === 'pain') {
       const weeks = m.how === 'pain' ? 4 : 2
       swaps[m.ex] = plusDays(weeks * 7)
       swapped.push({ ex: m.ex, to: EX[m.ex]?.sub || null, weeks, how: m.how })
     }
   }
-  for (const tree of session.trees || []) {
-    if (flaggedTrees.has(tree)) continue
-    const steps = TREES[tree].steps
-    if (regress) {
-      streaks[tree] = 0
-      if (tiers[tree] > 0) { tiers[tree] -= 1; regressed.push({ tree, ex: steps[tiers[tree]] }) }
-    } else if (tech === 1 && rpe <= 3) {
-      streaks[tree] = (streaks[tree] || 0) + 1
-      if (streaks[tree] >= 3 && tiers[tree] < steps.length - 1) { tiers[tree] += 1; streaks[tree] = 0; promoted.push({ tree, ex: steps[tiers[tree]] }) }
-    } else streaks[tree] = 0
+  if (clean) for (const [ex, amt] of Object.entries(done)) best[ex] = Math.max(best[ex] || 0, amt)
+  for (const [tr, t] of Object.entries(TREES)) {
+    if (flaggedTrees.has(tr)) continue
+    const cur = t.steps[tiers[tr]]
+    const used = done[cur] != null || (session.trees || []).includes(tr)
+    if (!used) continue
+    if (regress) { down(tr); continue }
+    if (!clean || !(done[cur] >= t.goals[tiers[tr]])) continue
+    const n = (mastery[tr]?.clean || 0) + 1
+    if (n >= LADDER_CLEAN && tiers[tr] < t.steps.length - 1) {
+      tiers[tr] += 1
+      mastery[tr] = { clean: 0 }
+      promoted.push({ tree: tr, ex: t.steps[tiers[tr]] })
+    } else {
+      mastery[tr] = { clean: Math.min(n, LADDER_CLEAN) }
+      if (tiers[tr] < t.steps.length - 1) progress.push({ tree: tr, ex: cur, clean: n, need: LADDER_CLEAN })
+    }
   }
   profile.tiers = tiers
-  profile.streaks = streaks
+  profile.mastery = mastery
+  profile.best = best
   profile.swaps = swaps
   const msg = regress ? 'fb_regress' : rpe <= 2 ? 'fb_up' : rpe === 3 && tech === 1 ? 'fb_sweet' : rpe >= 4 || tech >= 2 ? 'fb_down' : 'fb_ok'
   const change = Math.round((profile.volume / before - 1) * 100)
-  return { delta, msg, promoted, regressed, swapped, rest: profile.rest, restBefore, change }
+  return { delta, msg, promoted, regressed, swapped, progress, rest: profile.rest, restBefore, change }
 }
 
 export { JMAP }

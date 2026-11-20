@@ -234,6 +234,8 @@ function Player({ session, onExit, onFinish }) {
   const elapsed = useRef(0)
   const coreTime = useRef(0) // seconds spent in the core block: what a for-time result measures
   const reps = useRef(0)
+  // Largest amount completed in one set of each main move (not warm-up or cool-down): feeds the ladders.
+  const done = useRef({})
   const finished = useRef(false)
   const live = useRef({})
   const step = steps[i]
@@ -262,13 +264,14 @@ function Player({ session, onExit, onFinish }) {
     finished.current = true
     stopSpeaking(); say(['done'], '')
     if (sound) buzz([80, 60, 160])
-    onFinish({ seconds: elapsed.current, coreSeconds: coreTime.current, session, reps: reps.current, loops })
+    onFinish({ seconds: elapsed.current, coreSeconds: coreTime.current, session, reps: reps.current, loops, done: done.current })
   }
   // completed=false when the athlete skipped the move
   const advance = (completed = true) => {
     if (phase === 'ready') return startWork(i)
     if (phase === 'rest') return startWork(i + 1)
     if (completed && step.type === 'reps') reps.current += step.amount
+    if (completed && (step.type === 'reps' || step.type === 'time') && !['warm', 'cool'].includes(step.section)) done.current[step.ex] = Math.max(done.current[step.ex] || 0, step.amount)
     if (completed && step.type === 'emom' && step.reps && !emomDone) reps.current += step.reps
     if (step.loop && !steps[i + 1]?.loop && capLeft > 0) { setLoops((x) => x + 1); return startWork(steps.findIndex((s) => s.loop)) }
     if (i >= steps.length - 1) return finish()

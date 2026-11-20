@@ -308,3 +308,12 @@ label.field { display: flex; flex-direction: column; gap: 6px; font-weight: 650;
 .seg.mini { flex: none; }
 .seg.mini button { padding: 6px 8px; font-size: 0.72rem; flex: none; }
 .figbox .photos { overflow: hidden; border-radius: inherit; }
+
+/* Skill ladders */
+.ladder-card { display: flex; flex-direction: column; gap: 8px; }
+.ladder-goal { display: flex; flex-direction: column; gap: 6px; }
+.meter { height: 6px; border-radius: 3px; background: var(--card-2); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--ok); border-radius: 3px; }
+.pip { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--ok); }
+.pip.on { background: var(--ok); }
+button.rung { width: 100%; text-align: left; border-top: 1px solid var(--line); }

@@ -3,8 +3,8 @@ import { ArrowLeft, Play, Check, Flame, Clock, ChevronRight, Search, Share2, Spa
 import { useStore, activeProfile, stats, dayStr, addDays, weekStart, rank } from '../lib/store.jsx'
 import { useT, TIPS } from '../lib/i18n.js'
 import { JOURNEYS, JMAP, PEAKS, DRILLS, SPLITS, pbKey, phaseOf, recommend } from '../data/journeys.js'
-import { EXERCISES, EX, TREES } from '../data/exercises.js'
-import { buildSession, totalSessions, daysPerWeek, tiersOf, applyFeedback, mainMoves, TRAIN_DAYS } from '../lib/plan.js'
+import { EXERCISES, EX, TREES, LADDER_CLEAN } from '../data/exercises.js'
+import { buildSession, totalSessions, daysPerWeek, tiersOf, applyFeedback, mainMoves, TRAIN_DAYS, ladderStatus } from '../lib/plan.js'
 import { coachMessage } from '../lib/coach.js'
 import { shareRecap } from '../lib/share.js'
 import { APP } from '../config.js'
@@ -306,7 +306,7 @@ export function Explore({ nav }) {
   const { state } = useStore()
   const { t, L } = useT()
   const p = activeProfile(state)
-  const tiers = tiersOf(p)
+  const ladders = ladderStatus(p)
   const [q, setQ] = useState('')
   const [area, setArea] = useState('all')
   const [open, setOpen] = useState(null)
@@ -318,24 +318,45 @@ export function Explore({ nav }) {
       <h1>{t('tab_explore')}</h1>
 
       <div><h2>{t('skills')}</h2><p className="muted small">{t('skillsSub')}</p></div>
-      {Object.entries(TREES).map(([id, tr]) => (
-        <button className="card tap" key={id} onClick={() => setTree(tree === id ? null : id)}>
-          <div className="row between">
-            <span><span className="eyebrow">{L(tr.name)}</span><b style={{ display: 'block' }}>{L(EX[tr.steps[tiers[id]]].name)}</b></span>
-            <span className="chip blue">{tiers[id] + 1} / {tr.steps.length}</span>
-          </div>
-          <div className="ladder">{tr.steps.map((s, k) => <i key={s} className={k <= tiers[id] ? 'on' : ''} />)}</div>
-          {tree === id && (
-            <div style={{ marginTop: 10 }}>
-              {tr.steps.map((s, k) => (
-                <div key={s} className={`rung ${k < tiers[id] ? 'done' : k === tiers[id] ? 'now' : ''}`}>
-                  <span className="dot" /><span className="grow">{L(EX[s].name)}</span>{k === tiers[id] && <span className="chip blue">{t('youAreHere')}</span>}
+      {Object.entries(TREES).map(([id, tr]) => {
+        const st = ladders[id]
+        const unit = (ex, n) => (EX[ex].type === 'time' ? t('goalSec', { n }) : t('goalReps', { n }))
+        return (
+          <div className="card ladder-card" key={id}>
+            <button className="row" style={{ gap: 12, width: '100%', textAlign: 'left' }} onClick={() => setTree(tree === id ? null : id)} aria-expanded={tree === id}>
+              <div className="figbox" style={{ width: 56, height: 56 }}><Demo ex={EX[st.ex]} size={56} animate={false} thumb /></div>
+              <span className="grow" style={{ minWidth: 0 }}>
+                <span className="eyebrow">{L(tr.name)}</span>
+                <b style={{ display: 'block' }}>{L(EX[st.ex].name)}</b>
+              </span>
+              <span className="chip blue">{st.tier + 1} / {tr.steps.length}</span>
+            </button>
+            <div className="ladder">{tr.steps.map((s, k) => <i key={s} className={k <= st.tier ? 'on' : ''} />)}</div>
+            {st.next ? (
+              <div className="ladder-goal">
+                <div className="row between small"><span>{t('ladderGoal', { x: unit(st.ex, st.goal) })}</span><b>{st.best ? t('ladderBest', { x: unit(st.ex, st.best) }) : t('ladderNoBest')}</b></div>
+                <div className="meter"><i style={{ width: `${Math.min(100, Math.round((st.best / st.goal) * 100))}%` }} /></div>
+                <div className="row between small">
+                  <span className="row" style={{ gap: 6 }}>{Array.from({ length: LADDER_CLEAN }, (_, k) => <span key={k} className={`pip ${k < st.clean ? 'on' : ''}`} />)} {t('ladderClean', { c: st.clean, n: LADDER_CLEAN })}</span>
+                  <span className="muted">{t('ladderNext', { x: L(EX[st.next].name) })}</span>
                 </div>
-              ))}
-            </div>
-          )}
-        </button>
-      ))}
+              </div>
+            ) : <p className="note ok small">{t('ladderTop')}</p>}
+            {tree === id && (
+              <div style={{ marginTop: 6 }}>
+                {tr.steps.map((s, k) => (
+                  <button key={s} className={`rung ${k < st.tier ? 'done' : k === st.tier ? 'now' : ''}`} onClick={() => setOpen(EX[s])}>
+                    <div className="figbox" style={{ width: 40, height: 40 }}><Demo ex={EX[s]} size={40} animate={false} thumb /></div>
+                    <span className="grow">{L(EX[s].name)}<span className="muted small" style={{ display: 'block' }}>{t('ladderGoal', { x: unit(s, tr.goals[k]) })}</span></span>
+                    {k === st.tier && <span className="chip blue">{t('youAreHere')}</span>}
+                    {k < st.tier && <Check size={16} color="var(--ok)" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
 
       <div><h2>{t('peaks')}</h2><p className="muted small">{t('peaksSub')}</p></div>
       {['full', 'upper', 'legs'].map((type) => (
@@ -413,7 +434,7 @@ export function Calibrate({ hid, nav }) {
       hh.rpe = rpe; hh.tech = tech
       const flagged = moves.filter((m) => flags[m.ex]).map((m) => ({ ...m, how: flags[m.ex] }))
       hh.flags = flagged.map((m) => ({ ex: m.ex, how: m.how }))
-      hh.fb = applyFeedback(pp, { trees: hh.trees || [] }, rpe, tech, flagged)
+      hh.fb = applyFeedback(pp, { trees: hh.trees || [] }, rpe, tech, flagged, hh.done || {})
     })
     nav.swap('recap', { hid })
   }
@@ -468,6 +489,7 @@ export function NextChanges({ fb }) {
   if (fb.rest != null && fb.rest !== fb.restBefore) lines.push([Clock, t('next_rest', { n: fb.rest })])
   for (const x of fb.promoted || []) lines.push([TrendingUp, t('promotedTo', { x: L(EX[x.ex].name) })])
   for (const x of fb.regressed || []) lines.push([TrendingDown, t('movedTo', { x: L(EX[x.ex].name) })])
+  for (const x of fb.progress || []) lines.push([Trophy, t('ladderStep', { x: L(EX[x.ex].name), c: x.clean, n: x.need })])
   for (const x of fb.swapped || []) lines.push([Repeat, x.to ? t('next_swap', { x: L(EX[x.ex].name), y: L(EX[x.to].name), w: x.weeks }) : t('next_drop', { x: L(EX[x.ex].name), w: x.weeks })])
   return (
     <div className="stack" style={{ gap: 6 }}>
